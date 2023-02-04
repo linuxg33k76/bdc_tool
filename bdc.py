@@ -61,7 +61,7 @@ def main():
     # Read BDC CSV file point by point
 
     bdc_items = bdc_data[1:]
-    for bdc_item in tqdm(bdc_items:
+    for bdc_item in tqdm(bdc_items):
 
    
         bdc_array = bdc_item.strip('\n').replace('"','').split(',')
