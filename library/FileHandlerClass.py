@@ -10,7 +10,7 @@ class FileHandler():
         self.fullfile = os.path.join(filepath, filename)
         self.home_dir = os.getenv('HOME')
 
-    def get_csv_headers(self):
+    def get_csv_header(self):
 
         with open(self.fullfile, 'r') as f:
             data = f.readline().strip('\n').replace('"','')
@@ -23,8 +23,18 @@ class FileHandler():
         return data
     
     def write_file(self, data):
+        path_exists = self.path_check()
+        if path_exists is False:
+            self.create_dir()
         with open(self.fullfile, 'w') as f:
-            f.write_line(data)
+            f.write(data)
+
+    def write_append_to_file(self, data):
+        path_exists = self.path_check()
+        if path_exists is False:
+            self.create_dir()
+        with open(self.fullfile, 'a') as f:
+            f.write(data)
 
     def get_home_directory(self):
         return os.gethome()
@@ -38,6 +48,9 @@ class FileHandler():
             return True
         else:
             return False
+
+    def create_dir(self):
+        os.mkdir(self.filepath)
 
 
     def file_check(self):
@@ -69,7 +82,5 @@ class MiscTools():
         '''
 
         width = os.popen('stty size', 'r').read().split()[1]
-
-        print(f'Screen Width: {width}')
 
         return int(width)
