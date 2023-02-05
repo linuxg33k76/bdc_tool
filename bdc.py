@@ -90,15 +90,24 @@ def main():
     
 
     # Get user inputs
-    # bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
-    # sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
-    # out_csv_file = input('Please enter path and filename of Output CSV file: ')
-    # search_area = input('What is your search radius in feet? ')
+    while True:
+        bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
+        if FHC.MiscTools.file_check(bdc_csv_file) is True:
+            break
+    while True:
+        sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
+        if FHC.MiscTools.file_check(sm_csv_file) is True:
+            break
+    out_csv_file = input('Please enter path and filename of Output CSV file: ')
+    search_area = input('What is your search radius in feet? ')
 
-    bdc_csv_file = '/home/bcalvert/Data/FCC_Active_BSL.csv'
-    sm_csv_file = '/home/bcalvert/Data/Dubois_SM.csv'
-    out_csv_file = '/home/bcalvert/Data/output/test.csv'
-    search_area = '50'
+    # TODO: Sanitize User Inputs
+
+    # Simulated Inputs for TESTING PURPOSES
+    # bdc_csv_file = '/home/bcalvert/Data/FCC_Active_BSL.csv'
+    # sm_csv_file = '/home/bcalvert/Data/Dubois_SM.csv'
+    # out_csv_file = '/home/bcalvert/Data/output/test.csv'
+    # search_area = '50'
 
     # Set FHC instances
     bdc_file = FHC.FileHandler(bdc_csv_file)
@@ -115,14 +124,10 @@ def main():
     out_file_header = bdc_data[0].strip('\n') + ',"FullAddress","Service","GIS_LAT","GIS_LON","Distance","Match_Flag"\n'
     out_file.write_file(out_file_header)
 
-
     # Read Data Files and drop the fist line (it contains headers)
 
     bdc_items = bdc_data[1:]
     sm_items = sm_data[1:]
-
-    
-
 
     # Data package definition
 
@@ -151,7 +156,7 @@ def main():
     total_time = (stop_time - start_time)/60
     
     
-    print(f'Complete! Overall Time: {total_time} minutes.', flush=True)
+    print_with_header(f'Complete! Overall Time: {total_time:.2f} minutes.')
 
 
 if __name__ == '__main__':

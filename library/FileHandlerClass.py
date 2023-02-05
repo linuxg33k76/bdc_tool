@@ -48,25 +48,10 @@ class FileHandler():
         os.mkdir(self.path)
 
 
-    def file_check(self):
-
-        '''
-        Test for file existance.
-
-        file: string (complete path to file)
-
-        return: bool
-        '''
-        
-        if os.path.isfile(self.fullfile):
-            return True
-        else:
-            return False
+    
     
 class MiscTools():
 
-    def __init__(self):
-        pass
 
     def get_terminal_width(self):
        
@@ -79,3 +64,18 @@ class MiscTools():
         width = os.popen('stty size', 'r').read().split()[1]
 
         return int(width)
+
+    def file_check(filename):
+
+            '''
+            Test for file existance.
+
+            file: string (complete path to file)
+
+            return: bool
+            '''
+            
+            if os.path.isfile(filename):
+                return True
+            else:
+                return False
