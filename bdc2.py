@@ -84,8 +84,15 @@ def test_for_match(center_point, test_point):
 
     return dis
 
-# Created by ChatGPT3 - For Use in a Refactor
+# Created by ChatGPT3 (modified)
 def haversine(lat1, lon1, lat2, lon2):
+
+    # Convert Strings to Floats
+    lat1 = float(lat1)
+    lat2 = float(lat2)
+    lon1 = float(lon1)
+    lon2 = float(lon2)
+
     R = 20_902_766  # radius of Earth in feet
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
@@ -94,14 +101,33 @@ def haversine(lat1, lon1, lat2, lon2):
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return R * c
 
-def find_close_points(locations, lat, lon, threshold_distance):
+def find_close_points(data, bdc_item):
+
+    bdc_header = data['bdc_header']
+    sm_header = data['sm_header']
+    out_file = data['output_file']
+    locations = data['sm_items']
+    threshold_distance = float(data['search_area'])
+
+    # Create an addressible dictionary record
+    bdc_array = bdc_item.strip('\n').replace('"','').split(',')
+    bdc_record = dict(zip(bdc_header, bdc_array))
+
     close_points = []
     for location in locations:
-        distance = haversine(lat, lon, location[0], location[1])
+
+        # Create an addressible dictionary record
+        loc_array = location.strip('\n').replace('"','').split(',')
+        loc_record = dict(zip(sm_header, loc_array))
+        
+        distance = haversine(bdc_record['latitude'], bdc_record['longitude'], loc_record['GIS LAT'], loc_record['GIS LON'])
         if distance <= threshold_distance:
             close_points.append(location)
-    return close_points
-# End of ChatGPT3 section - For Use in a Refactor
+            data_to_write = bdc_item.strip('\n') + ',' + loc_record['FullAddress'] + ',' + loc_record['Service'] + ',' + loc_record['GIS LAT'] + ',' + loc_record['GIS LON'] + ',' + str(distance) + ',TRUE\n'
+            out_file.write_append_to_file(data_to_write)
+        
+
+# End of ChatGPT3 section (modified)
 
 def main():
 
@@ -110,24 +136,24 @@ def main():
     
 
     # Get user inputs
-    while True:
-        bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
-        if FHC.MiscTools.file_check(bdc_csv_file) is True:
-            break
-    while True:
-        sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
-        if FHC.MiscTools.file_check(sm_csv_file) is True:
-            break
-    out_csv_file = input('Please enter path and filename of Output CSV file: ')
-    search_area = input('What is your search radius in feet? ')
+    # while True:
+    #     bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
+    #     if FHC.MiscTools.file_check(bdc_csv_file) is True:
+    #         break
+    # while True:
+    #     sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
+    #     if FHC.MiscTools.file_check(sm_csv_file) is True:
+    #         break
+    # out_csv_file = input('Please enter path and filename of Output CSV file: ')
+    # search_area = input('What is your search radius in feet? ')
 
     # TODO: Sanitize User Inputs
 
     # Simulated Inputs for TESTING PURPOSES
-    # bdc_csv_file = '/home/bcalvert/Data/FCC_Active_BSL.csv'
-    # sm_csv_file = '/home/bcalvert/Data/Dubois_SM.csv'
-    # out_csv_file = '/home/bcalvert/Data/output/test.csv'
-    # search_area = '50'
+    bdc_csv_file = '/home/bcalvert/Data/FCC_Active_BSL.csv'
+    sm_csv_file = '/home/bcalvert/Data/Dubois_SM.csv'
+    out_csv_file = '/home/bcalvert/Data/output/test_bdc2.csv'
+    search_area = '50'
 
     # Set FHC instances
     bdc_file = FHC.FileHandler(bdc_csv_file)
@@ -164,7 +190,8 @@ def main():
    
     start_time = Timer()
 
-    processes = tqdm([Process(target=iterate_loop, args=(bdc_item, data)) for bdc_item in bdc_items])
+    # processes = tqdm([Process(target=iterate_loop, args=(bdc_item, data)) for bdc_item in bdc_items])
+    processes = tqdm([Process(target=find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items])
    
     for process in processes:
         process.start()
