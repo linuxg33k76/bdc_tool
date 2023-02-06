@@ -136,24 +136,24 @@ def main():
     
 
     # Get user inputs
-    # while True:
-    #     bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
-    #     if FHC.MiscTools.file_check(bdc_csv_file) is True:
-    #         break
-    # while True:
-    #     sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
-    #     if FHC.MiscTools.file_check(sm_csv_file) is True:
-    #         break
-    # out_csv_file = input('Please enter path and filename of Output CSV file: ')
-    # search_area = input('What is your search radius in feet? ')
+    while True:
+        bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
+        if FHC.MiscTools.file_check(bdc_csv_file) is True:
+            break
+    while True:
+        sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
+        if FHC.MiscTools.file_check(sm_csv_file) is True:
+            break
+    out_csv_file = input('Please enter path and filename of Output CSV file: ')
+    search_area = input('What is your search radius in feet? ')
 
     # TODO: Sanitize User Inputs
 
     # Simulated Inputs for TESTING PURPOSES
-    bdc_csv_file = '/home/bcalvert/Data/FCC_Active_BSL.csv'
-    sm_csv_file = '/home/bcalvert/Data/Dubois_SM.csv'
-    out_csv_file = '/home/bcalvert/Data/output/test_bdc2.csv'
-    search_area = '50'
+    # bdc_csv_file = '/home/bcalvert/Data/FCC_Active_BSL.csv'
+    # sm_csv_file = '/home/bcalvert/Data/Dubois_SM.csv'
+    # out_csv_file = '/home/bcalvert/Data/output/test_bdc2.csv'
+    # search_area = '50'
 
     # Set FHC instances
     bdc_file = FHC.FileHandler(bdc_csv_file)
