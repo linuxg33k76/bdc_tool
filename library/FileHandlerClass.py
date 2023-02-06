@@ -22,16 +22,16 @@ class FileHandler():
         return data
     
     def write_file(self, data):
-        path_exists = self.path_check()
-        if path_exists is False:
-            self.create_dir()
+        # path_exists = self.path_check()
+        # if path_exists is False:
+        #     self.create_dir()
         with open(self.filename, 'w') as f:
             f.write(data)
 
     def write_append_to_file(self, data):
-        path_exists = self.path_check()
-        if path_exists is False:
-            self.create_dir()
+        # path_exists = self.path_check()
+        # if path_exists is False:
+        #     self.create_dir()
         with open(self.filename, 'a') as f:
             f.write(data)
 
