@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import math
+
 from timeit import default_timer as Timer
 from multiprocessing import Process
 from tqdm import tqdm
@@ -83,25 +83,6 @@ def test_for_match(center_point, test_point):
         pass
 
     return dis
-
-# Created by ChatGPT3 - For Use in a Refactor
-def haversine(lat1, lon1, lat2, lon2):
-    R = 20_902_766  # radius of Earth in feet
-    dlat = math.radians(lat2 - lat1)
-    dlon = math.radians(lon2 - lon1)
-    a = (math.sin(dlat / 2) ** 2) + (math.cos(math.radians(lat1)) *
-         math.cos(math.radians(lat2)) * (math.sin(dlon / 2) ** 2))
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return R * c
-
-def find_close_points(locations, lat, lon, threshold_distance):
-    close_points = []
-    for location in locations:
-        distance = haversine(lat, lon, location[0], location[1])
-        if distance <= threshold_distance:
-            close_points.append(location)
-    return close_points
-# End of ChatGPT3 section - For Use in a Refactor
 
 def main():
 
