@@ -4,40 +4,48 @@ import os
 
 class FileHandler():
 
-    def __init__(self, filepath, filename):
+    def __init__(self, filename):
         self.filename = filename
-        self.filepath = filepath
-        self.fullfile = os.path.join(filepath, filename)
+        self.path = filename.split('/')[-1]
         self.home_dir = os.getenv('HOME')
 
-    def get_csv_headers(self):
+    def get_csv_header(self):
 
-        with open(self.fullfile, 'r') as f:
+        with open(self.filename, 'r') as f:
             data = f.readline().strip('\n').replace('"','')
         return data.split(',')
 
 
     def read_file(self):
-        with open(self.fullfile, 'r') as f:
+        with open(self.filename, 'r') as f:
             data = f.readlines()
         return data
     
     def write_file(self, data):
-        with open(self.fullfile, 'w') as f:
-            f.write_line(data)
+        path_exists = self.path_check()
+        if path_exists is False:
+            self.create_dir()
+        with open(self.filename, 'w') as f:
+            f.write(data)
 
-    def get_home_directory(self):
-        return os.gethome()
+    def write_append_to_file(self, data):
+        path_exists = self.path_check()
+        if path_exists is False:
+            self.create_dir()
+        with open(self.filename, 'a') as f:
+            f.write(data)
 
     def get_cwd(self):
         return os.getcwd()
 
     def path_check(self):
-        
-        if os.path.exists(self.filepath):
+        if os.path.exists(self.path):
             return True
         else:
             return False
+
+    def create_dir(self):
+        os.mkdir(self.path)
 
 
     def file_check(self):
@@ -69,7 +77,5 @@ class MiscTools():
         '''
 
         width = os.popen('stty size', 'r').read().split()[1]
-
-        print(f'Screen Width: {width}')
 
         return int(width)
