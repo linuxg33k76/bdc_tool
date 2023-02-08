@@ -12,7 +12,7 @@ class FileHandler():
     def get_csv_header(self):
 
         with open(self.filename, 'r') as f:
-            data = f.readline().strip('\n').replace('"','')
+            data = f.readline().strip('\n').replace('"','').replace('\ufeff','')
         return data.split(',')
 
 
@@ -67,15 +67,15 @@ class MiscTools():
 
     def file_check(filename):
 
-            '''
-            Test for file existance.
+        '''
+        Test for file existance.
 
-            file: string (complete path to file)
+        file: string (complete path to file)
 
-            return: bool
-            '''
-            
-            if os.path.isfile(filename):
-                return True
-            else:
-                return False
+        return: bool
+        '''
+        
+        if os.path.isfile(filename):
+            return True
+        else:
+            return False

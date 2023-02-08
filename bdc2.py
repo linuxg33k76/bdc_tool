@@ -22,54 +22,54 @@ def print_with_header(text):
     print('*'*columns + '\n' + ' '*padding + text + '\n' + '*'*columns + '\n')
 
 
-def iterate_loop(bdc_item, data):
+# def iterate_loop(bdc_item, data):
 
     
-    # bdc_items = data['bdc_items']
-    sm_items = data['sm_items']
-    bdc_header = data['bdc_header']
-    sm_header = data['sm_header']
-    search_area = data['search_area']
-    out_file = data['output_file']
+#     # bdc_items = data['bdc_items']
+#     sm_items = data['sm_items']
+#     bdc_header = data['bdc_header']
+#     sm_header = data['sm_header']
+#     search_area = data['search_area']
+#     out_file = data['output_file']
 
-    match_counter = 0
+#     match_counter = 0
 
-    bdc_array = bdc_item.strip('\n').replace('"','').split(',')
+#     bdc_array = bdc_item.strip('\n').replace('"','').split(',')
 
-    bdc_record = dict(zip(bdc_header, bdc_array))
+#     bdc_record = dict(zip(bdc_header, bdc_array))
     
-    # print(bdc_record)
+#     # print(bdc_record)
 
-    center_point = [{'lat': float(bdc_record['latitude']), 'lng': float(bdc_record['longitude'])}]
+#     center_point = [{'lat': float(bdc_record['latitude']), 'lng': float(bdc_record['longitude'])}]
 
-    # Loop through SM data to find a point within the range (skip the first line which is header info)
+#     # Loop through SM data to find a point within the range (skip the first line which is header info)
 
-    for sm_item in sm_items:
+#     for sm_item in sm_items:
 
-            sm_array = sm_item.strip('\n').replace('"','').split(',')
+#             sm_array = sm_item.strip('\n').replace('"','').split(',')
 
-            sm_record = dict(zip(sm_header, sm_array))
+#             sm_record = dict(zip(sm_header, sm_array))
 
-            test_point = [{'lat': float(sm_record['GIS LAT']), 'lng': float(sm_record['GIS LON'])}]
-            radius = float(search_area) # in feet
+#             test_point = [{'lat': float(sm_record['GIS LAT']), 'lng': float(sm_record['GIS LON'])}]
+#             radius = float(search_area) # in feet
 
-            dis = test_for_match(center_point, test_point)
+#             dis = test_for_match(center_point, test_point)
 
-            if dis <= radius:
-                # print(f'Distance: {dis:0.2f} ft')
-                # print(f'{test_point_tuple} point is inside the {user_feet} ft radius from {center_point_tuple} coordinate')
-                '''
-                Out File Headers
-                "location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude","FullAddress","Service","GIS_LAT","GIS_LON","Distance","Match_Flag"
-                '''
-                data_to_write = bdc_item.strip('\n') + ',' + sm_record['FullAddress'] + ',' + sm_record['Service'] + ',' + sm_record['GIS LAT'] + ',' + sm_record['GIS LON'] + ',' + str(dis) + ',TRUE\n'
-                out_file.write_append_to_file(data_to_write)
-                match_counter += 1
+#             if dis <= radius:
+#                 # print(f'Distance: {dis:0.2f} ft')
+#                 # print(f'{test_point_tuple} point is inside the {user_feet} ft radius from {center_point_tuple} coordinate')
+#                 '''
+#                 Out File Headers
+#                 "location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude","FullAddress","Service","GIS_LAT","GIS_LON","Distance","Match_Flag"
+#                 '''
+#                 data_to_write = bdc_item.strip('\n') + ',' + sm_record['FullAddress'] + ',' + sm_record['Service'] + ',' + sm_record['GIS LAT'] + ',' + sm_record['GIS LON'] + ',' + str(dis) + ',TRUE\n'
+#                 out_file.write_append_to_file(data_to_write)
+#                 match_counter += 1
 
-            else:
-                pass
+#             else:
+#                 pass
 
-    return (bdc_item, match_counter)
+#     return (bdc_item, match_counter)
 
 def test_for_match(center_point, test_point):
 
@@ -83,6 +83,11 @@ def test_for_match(center_point, test_point):
         pass
 
     return dis
+
+def write_record(data, ofile):
+    for item in data:
+        ofile.write_append_to_file(item)
+
 
 # Created by ChatGPT3 (modified)
 def haversine(lat1, lon1, lat2, lon2):
@@ -113,19 +118,27 @@ def find_close_points(data, bdc_item):
     bdc_array = bdc_item.strip('\n').replace('"','').split(',')
     bdc_record = dict(zip(bdc_header, bdc_array))
 
-    close_points = []
+    results = []
     for location in locations:
 
         # Create an addressible dictionary record
         loc_array = location.strip('\n').replace('"','').split(',')
         loc_record = dict(zip(sm_header, loc_array))
-        
-        distance = haversine(bdc_record['latitude'], bdc_record['longitude'], loc_record['GIS LAT'], loc_record['GIS LON'])
-        if distance <= threshold_distance:
-            close_points.append(location)
-            data_to_write = bdc_item.strip('\n') + ',' + loc_record['FullAddress'] + ',' + loc_record['Service'] + ',' + loc_record['GIS LAT'] + ',' + loc_record['GIS LON'] + ',' + str(distance) + ',TRUE\n'
-            out_file.write_append_to_file(data_to_write)
-        
+
+        # Test for NULL
+        if loc_record['Latitude'].upper() != 'NULL' and loc_record['Longitude'].upper() != 'NULL':      
+            distance = haversine(bdc_record['latitude'], bdc_record['longitude'], loc_record['Latitude'], loc_record['Longitude'])
+            if distance <= threshold_distance:
+                results.append(bdc_item.strip('\n') + ',' + loc_record['FullAddress'] + ',' + loc_record['Service'] + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
+
+    if results != []:
+        write_record(results, out_file)
+    else:
+        # write data w/o a match
+        results.append(bdc_item.strip('\n') + ',' + ',' + ',' + ',' + ',' + ',' ',FALSE\n')
+        write_record(results, out_file)
+
+
 
 # End of ChatGPT3 section (modified)
 
@@ -151,8 +164,8 @@ def main():
 
     # Simulated Inputs for TESTING PURPOSES
     # bdc_csv_file = '/home/bcalvert/Data/FCC_Active_BSL.csv'
-    # sm_csv_file = '/home/bcalvert/Data/Dubois_SM.csv'
-    # out_csv_file = '/home/bcalvert/Data/output/test_bdc2.csv'
+    # sm_csv_file = '/home/bcalvert/Data/All_SM.csv'
+    # out_csv_file = '/home/bcalvert/Data/output/All_SM_FCC_Report.csv'
     # search_area = '50'
 
     # Set FHC instances
@@ -167,7 +180,7 @@ def main():
     sm_data = sm_file.read_file()
 
     # Set Output Header Data
-    out_file_header = bdc_data[0].strip('\n') + ',"FullAddress","Service","GIS_LAT","GIS_LON","Distance","Match_Flag"\n'
+    out_file_header = bdc_data[0].strip('\n') + ',"FullAddress","Service","SM_LAT","SM_LON","Company","Distance","Match_Flag"\n'
     out_file.write_file(out_file_header)
 
     # Read Data Files and drop the fist line (it contains headers)
@@ -190,13 +203,18 @@ def main():
    
     start_time = Timer()
 
-    # processes = tqdm([Process(target=iterate_loop, args=(bdc_item, data)) for bdc_item in bdc_items])
     processes = tqdm([Process(target=find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items])
    
     for process in processes:
         process.start()
     for process in tqdm(processes):
         process.join()
+
+    print(sm_header)
+ 
+    # Single Processor
+    # for bdc_item in tqdm(bdc_items):
+    #     find_close_points(data, bdc_item)
 
     stop_time = Timer()
 
