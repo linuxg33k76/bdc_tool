@@ -210,7 +210,6 @@ def main():
     for process in tqdm(processes):
         process.join()
 
-    print(sm_header)
  
     # Single Processor
     # for bdc_item in tqdm(bdc_items):
