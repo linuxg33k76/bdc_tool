@@ -131,12 +131,10 @@ def find_close_points(data, bdc_item):
 
         # Test for NULL values in Latitude and Longitude dictionary items
         if loc_record['Latitude'].upper() != 'NULL' and loc_record['Longitude'].upper() != 'NULL':
-            try:  
-                distance = haversine(bdc_record['latitude'], bdc_record['longitude'], loc_record['Latitude'], loc_record['Longitude'])
-                if distance <= threshold_distance:
-                    results.append(bdc_item.strip('\n') + ',' + loc_record['M4_Structure_ID'] + ',' + loc_record['FullAddress'] + ',' + loc_record['Service'] + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
-            except:
-                pass
+            distance = haversine(bdc_record['latitude'], bdc_record['longitude'], loc_record['Latitude'], loc_record['Longitude'])
+            if distance <= threshold_distance:
+                results.append(bdc_item.strip('\n') + ',' + loc_record['SID'] + ',' + loc_record['FullAddress'] + ',' + loc_record['Service'] + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
+
     
     # Test to see if we have matches and if so, append those matches to our output file
     if results != []:
