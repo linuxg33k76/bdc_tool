@@ -134,7 +134,7 @@ def find_close_points(data, bdc_item):
             try:  
                 distance = haversine(bdc_record['latitude'], bdc_record['longitude'], loc_record['Latitude'], loc_record['Longitude'])
                 if distance <= threshold_distance:
-                    results.append(bdc_item.strip('\n') + ',' + loc_record['FullAddress'] + ',' + loc_record['Service'] + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
+                    results.append(bdc_item.strip('\n') + ',' + loc_record['M4_Structure_ID'] + ',' + loc_record['FullAddress'] + ',' + loc_record['Service'] + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
             except:
                 pass
     
@@ -143,7 +143,7 @@ def find_close_points(data, bdc_item):
         write_record(results, out_file)
     else:
         # write data w/o a match - single record
-        results.append(bdc_item.strip('\n') + ',' + ',' + ',' + ',' + ',' + ',' ',FALSE\n')
+        results.append(bdc_item.strip('\n') + ',' + ',' + ',' + ',' + ',' + ',' + ',' ',FALSE\n')
         write_record(results, out_file)
 
 
