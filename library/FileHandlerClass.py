@@ -144,3 +144,18 @@ class MiscTools():
             return True
         else:
             return False
+
+    def path_check(filename):
+        '''
+        Test for path existance.
+
+        file: string (complete path to file)
+
+        return: bool
+        ''' 
+
+        path, file = os.path.split(filename)
+        if os.path.isdir(path):
+            return True
+        else:
+            return False
