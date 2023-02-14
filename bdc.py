@@ -24,9 +24,7 @@ import multiprocessing
 from timeit import default_timer as Timer
 from multiprocessing import Process
 from tqdm import tqdm
-from geopy import distance
 from library import FileHandlerClass as FHC
-
 
 # Function Definitions
 
@@ -133,7 +131,8 @@ def find_close_points(data, bdc_item):
         if loc_record['Latitude'].upper() != 'NULL' and loc_record['Longitude'].upper() != 'NULL':
             distance = haversine(bdc_record['latitude'], bdc_record['longitude'], loc_record['Latitude'], loc_record['Longitude'])
             if distance <= threshold_distance:
-                results.append(bdc_item.strip('\n') + ',' + loc_record['SID'] + ',' + loc_record['FullAddress'] + ',' + loc_record['Service'] + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
+                service = loc_record['Service'].split('_')[0]
+                results.append(bdc_item.strip('\n') + ',' + loc_record['SID'] + ',' + loc_record['FullAddress'] + ',' + service + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
 
     
     # Test to see if we have matches and if so, append those matches to our output file
@@ -155,16 +154,40 @@ def main():
     print_with_header(f'Welcome to the BDC Fabric Comparison Tool.  Your system has: {cpus} CPUs for processing.')
 
     # Get user inputs
+    # while True:
+    #     bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
+    #     if FHC.MiscTools.file_check(bdc_csv_file) is True:
+    #         break
+    # while True:
+    #     sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
+    #     if FHC.MiscTools.file_check(sm_csv_file) is True:
+    #         break
     while True:
-        bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
-        if FHC.MiscTools.file_check(bdc_csv_file) is True:
+        out_csv_file = input('Please enter path and filename of Output CSV file: ')
+        if FHC.MiscTools.path_check(out_csv_file) is True:
             break
     while True:
-        sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
-        if FHC.MiscTools.file_check(sm_csv_file) is True:
-            break
-    out_csv_file = input('Please enter path and filename of Output CSV file: ')
-    search_area = input('What is your search radius in feet? ')
+        search_area = input('What is your search radius in feet? ')
+        try:
+            if float(search_area) > 0:
+                break
+        except:
+            pass    
+
+
+    # EasyGUI User Input Box
+    # title = 'BDC Tool'
+    # msg = 'BDC Input Selector'
+    # button = 'Go!'
+        
+    # bdc_csv_file = fileopenbox(msg="Choose FCC Active BLS file", default=rf"/home/bcalvert/*")
+    # sm_csv_file = fileopenbox(msg="Choose a file", default=r"/home/bcalvert/*")
+    # fieldNames = ["output file:", "Search Area (ft):"]
+    # fieldValues = multenterbox(msg, title, fieldNames)
+
+    # out_csv_file = fieldValues[0]
+    # search_area = fieldValues[1]
+    # print(bdc_csv_file, sm_csv_file, out_csv_file, search_area)
 
     # TODO: Sanitize User Inputs
 
