@@ -153,15 +153,15 @@ def main():
     cpus = multiprocessing.cpu_count()
     print_with_header(f'Welcome to the BDC Fabric Comparison Tool.  Your system has: {cpus} CPUs for processing.')
 
-    # Get user inputs
-    # while True:
-    #     bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
-    #     if FHC.MiscTools.file_check(bdc_csv_file) is True:
-    #         break
-    # while True:
-    #     sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
-    #     if FHC.MiscTools.file_check(sm_csv_file) is True:
-    #         break
+    # Get user inputs - Data validate
+    while True:
+        bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
+        if FHC.MiscTools.file_check(bdc_csv_file) is True:
+            break
+    while True:
+        sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
+        if FHC.MiscTools.file_check(sm_csv_file) is True:
+            break
     while True:
         out_csv_file = input('Please enter path and filename of Output CSV file: ')
         if FHC.MiscTools.path_check(out_csv_file) is True:
@@ -174,22 +174,6 @@ def main():
         except:
             pass    
 
-
-    # EasyGUI User Input Box
-    # title = 'BDC Tool'
-    # msg = 'BDC Input Selector'
-    # button = 'Go!'
-        
-    # bdc_csv_file = fileopenbox(msg="Choose FCC Active BLS file", default=rf"/home/bcalvert/*")
-    # sm_csv_file = fileopenbox(msg="Choose a file", default=r"/home/bcalvert/*")
-    # fieldNames = ["output file:", "Search Area (ft):"]
-    # fieldValues = multenterbox(msg, title, fieldNames)
-
-    # out_csv_file = fieldValues[0]
-    # search_area = fieldValues[1]
-    # print(bdc_csv_file, sm_csv_file, out_csv_file, search_area)
-
-    # TODO: Sanitize User Inputs
 
     # (TESTING SECTION)
     # Simulated Inputs for TESTING PURPOSES
