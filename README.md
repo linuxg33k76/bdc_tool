@@ -23,7 +23,7 @@ FCC Active BSL Headers:
   "block_geoid", \
   "h3_9", \
   "latitude", \
-  "longitude" \
+  "longitude" 
 
 
 M4 ServicesManager Report Headers:
@@ -37,7 +37,7 @@ FullAddress,SID,PID,EXID,Service,Latitude,Longitude,Company,_overlaps
   Latitude, \
   Longitude, \
   Company, \
-  \_overlaps \
+  \_overlaps 
 
 **Note** FullAddress will need all "," commas removed from the addresses in that column for proper data alignment.
 
