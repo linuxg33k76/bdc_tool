@@ -29,10 +29,12 @@ class BDCGUI():
         returns: None
 
         '''
-
+        # Set Window Theme
+        sg.theme('System Default')
 
         # Define Window Title
         title = "BDC Tool GUI"
+
         # Define the layout of the GUI
         layout = [
             # Two file select input boxes with labels
