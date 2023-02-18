@@ -84,6 +84,3 @@ class BDCGUI():
 
         # Print the values entered by user
         # print(self.data)
-
-        # return data
-        # return self.data
