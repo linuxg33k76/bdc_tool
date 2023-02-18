@@ -230,9 +230,6 @@ def main():
     # Start a timer to get a total run time
     start_time = Timer()
 
-    # Test code
-    gui.progress_gui(len(bdc_items))
-    quit()
     # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function.  Use FCC Active BSL data.
 
     processes = tqdm([Process(target=find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items])
