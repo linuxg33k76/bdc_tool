@@ -43,8 +43,7 @@ FullAddress,SID,PID,EXID,Service,Latitude,Longitude,Company,_overlaps
 
 Dependencies:
 
-PySimpleGUI
-  pip install PySimpleGui
+PySimpleGUI: *pip install PySimpleGui*
 
 **Note**  This may require python-tk package to work (Linux or WSL applications).  I have not tested on Windows 10/11 ... yet!
 
