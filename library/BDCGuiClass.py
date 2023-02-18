@@ -7,6 +7,12 @@ import os
 class BDCGUI():
 
     def __init__(self):
+
+        '''
+        Initialize Class with some key file elements.
+        This class is specific code to supplement the BDC Tool.
+        '''
+
         self.home = os.getenv("HOME")
         self.outfile = self.home + '/bdc_tool/output/bdc_tool_ouput.csv'
 
@@ -14,6 +20,17 @@ class BDCGUI():
        
 
     def create_gui(self):
+
+        '''
+        Create the main user input window.
+
+        class attributes : various
+
+        returns: None
+
+        '''
+
+
         # Define Window Title
         title = "BDC Tool GUI"
         # Define the layout of the GUI
@@ -42,13 +59,15 @@ class BDCGUI():
         # Close the window
         window.close()
 
-        # Create data dictionary of user inputs
+        # Create data dictionary of user inputs for testing
         self.data = {
             "fcc_file" : values[0],
             "sm_file"  : values[1],
             "outfile" : values['outfile'],
             "distance" : values['distance']
         }
+
+        # Assign User input to class attributes for assignment in main program
         self.fcc_file = values[0]
         self.sm_file = values[1]
         self.outfile = values['outfile']
@@ -62,8 +81,7 @@ class BDCGUI():
             os.makedirs(p)
 
         # Print the values entered by user
-        # print(f"You selected {values[0]} and {values[1]} as files.")
-        # print(f"You entered {values['outfile']} and {values['distance']} as values.")
+        # print(self.data)
 
         # return data
         # return self.data
