@@ -104,16 +104,6 @@ class FileHandler():
         else:
             return False
 
-    def create_dir(self):
-
-        '''
-        Create directory helper method.
-
-        return: None
-        '''
-
-        os.mkdir(self.path)
-
     
 class MiscTools():
 
@@ -159,3 +149,13 @@ class MiscTools():
             return True
         else:
             return False
+
+    def create_dir(path):
+
+        '''
+        Create directory helper method.
+
+        return: None
+        '''
+
+        os.mkdir(path)

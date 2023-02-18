@@ -21,10 +21,12 @@ Apache 2.0 License
 
 import math
 import multiprocessing
+import os
 from timeit import default_timer as Timer
 from multiprocessing import Process
 from tqdm import tqdm
 from library import FileHandlerClass as FHC
+from library import BDCGuiClass as BGC
 
 # Function Definitions
 
@@ -154,25 +156,25 @@ def main():
     print_with_header(f'Welcome to the BDC Fabric Comparison Tool.  Your system has: {cpus} CPUs for processing.')
 
     # Get user inputs - Data validate
-    while True:
-        bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
-        if FHC.MiscTools.file_check(bdc_csv_file) is True:
-            break
-    while True:
-        sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
-        if FHC.MiscTools.file_check(sm_csv_file) is True:
-            break
-    while True:
-        out_csv_file = input('Please enter path and filename of Output CSV file: ')
-        if FHC.MiscTools.path_check(out_csv_file) is True:
-            break
-    while True:
-        search_area = input('What is your search radius in feet? ')
-        try:
-            if float(search_area) > 0:
-                break
-        except:
-            pass    
+    # while True:
+    #     bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
+    #     if FHC.MiscTools.file_check(bdc_csv_file) is True:
+    #         break
+    # while True:
+    #     sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
+    #     if FHC.MiscTools.file_check(sm_csv_file) is True:
+    #         break
+    # while True:
+    #     out_csv_file = input('Please enter path and filename of Output CSV file: ')
+    #     if FHC.MiscTools.path_check(out_csv_file) is True:
+    #         break
+    # while True:
+    #     search_area = input('What is your search radius in feet? ')
+    #     try:
+    #         if float(search_area) > 0:
+    #             break
+    #     except:
+    #         pass    
 
 
     # (TESTING SECTION)
@@ -181,6 +183,15 @@ def main():
     # sm_csv_file = '/home/bcalvert/Data/All_SM.csv'
     # out_csv_file = '/home/bcalvert/Data/output/All_SM_FCC_Report.csv'
     # search_area = '50'
+
+    # Launch GUI
+    gui = BGC.BDCGUI()
+
+    # Assign GUI inputs by instance attributes
+    bdc_csv_file = gui.fcc_file
+    sm_csv_file = gui.sm_file
+    out_csv_file = gui.outfile
+    search_area = gui.distance
 
     # Set FHC instances
     bdc_file = FHC.FileHandler(bdc_csv_file)
