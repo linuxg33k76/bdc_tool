@@ -8,7 +8,7 @@ FCC Active BSL Headers:
 
 "location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude"
 
-  "location_id",
+  "location_id", \
   "address_primary",
   "city",
   "state",
