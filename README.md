@@ -51,4 +51,5 @@ Follow GUI prompts to configure input files, output file, and distance values.
 
 <img width="299" alt="image" src="https://user-images.githubusercontent.com/19679817/219900039-b235bcb0-a50e-4d9f-baeb-eb9dd86cabb5.png">
 
+Progress will be written to the terminal (GUI input was an add-on feature).  Processing can take time, but progress is presented via a progress bar in the CLI.
 
