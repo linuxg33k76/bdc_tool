@@ -9,35 +9,35 @@ FCC Active BSL Headers:
 "location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude"
 
   "location_id", \
-  "address_primary",
-  "city",
-  "state",
-  "zip",
-  "zip_suffix",
-  "unit_count",
-  "bsl_flag",
-  "building_type_code",
-  "land_use_code",
-  "address_confidence_code",
-  "county_geoid",
-  "block_geoid",
-  "h3_9",
-  "latitude",
-  "longitude"
+  "address_primary", \
+  "city", \
+  "state", \
+  "zip", \
+  "zip_suffix", \
+  "unit_count", \
+  "bsl_flag", \
+  "building_type_code", \
+  "land_use_code", \
+  "address_confidence_code", \
+  "county_geoid", \
+  "block_geoid", \
+  "h3_9", \
+  "latitude", \
+  "longitude" \
 
 
 M4 ServicesManager Report Headers:
 FullAddress,SID,PID,EXID,Service,Latitude,Longitude,Company,_overlaps
 
-  FullAddress,
-  SID,
-  PID,
-  EXID,
-  Service,
-  Latitude,
-  Longitude,
-  Company,
-  _overlaps
+  FullAddress, \
+  SID, \
+  PID, \
+  EXID, \
+  Service, \
+  Latitude, \
+  Longitude, \
+  Company, \
+  \_overlaps \
 
 **Note** FullAddress will need all "," commas removed from the addresses in that column for proper data alignment.
 
