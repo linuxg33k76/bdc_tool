@@ -27,8 +27,23 @@ from multiprocessing import Process
 from tqdm import tqdm
 from library import FileHandlerClass as FHC
 from library import BDCGuiClass as BGC
+from library import ArgsClass as AC
 
 # Function Definitions
+
+def verbose_print(text):
+
+    '''
+        Checks for verbose mode and if True, prints test for debugging.
+
+        text: string
+
+        return: none
+    '''
+
+    if args.verbose is True:
+        print(text)
+
 
 def print_with_header(text):
 
@@ -51,6 +66,35 @@ def print_with_header(text):
 
     print('*'*columns + '\n' + ' '*padding + text + '\n' + '*'*columns + '\n')
 
+def find_closest_point(data_array, max_dist):
+
+    '''
+        Sort records to find the closest point
+
+        data_array: array of dictionary data
+        max_dist: float
+
+        return: array of 1 value
+
+    '''
+
+    return_val = []
+
+    verbose_print(f'Array size: {len(data_array)}')
+
+    # loop thru the values in the array
+    for i in data_array:
+        distance = i['distance']
+        verbose_print(f'Distance Value: {distance}')
+        if distance <= max_dist:
+            val_to_return = i['record']
+            max_dist = distance
+            verbose_print(f'Max Distance: {max_dist}')
+
+    # Format as an arraw for writing - written this way for consistency
+    verbose_print(f'String to return: {val_to_return}')
+    return_val.append(val_to_return)
+    return return_val
 
 def write_record(data, ofile):
 
@@ -134,12 +178,19 @@ def find_close_points(data, bdc_item):
             distance = haversine(bdc_record['latitude'], bdc_record['longitude'], loc_record['Latitude'], loc_record['Longitude'])
             if distance <= threshold_distance:
                 service = loc_record['Service'].split('_')[0]
-                results.append(bdc_item.strip('\n') + ',' + loc_record['SID'] + ',' + loc_record['FullAddress'] + ',' + service + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
-
+                # results.append(bdc_item.strip('\n') + ',' + loc_record['SID'] + ',' + loc_record['FullAddress'] + ',' + service + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
+                # Create an array entry with a dict element of distance and string of data to write
+                record = bdc_item.strip('\n') + ',' + loc_record['SID'] + ',' + loc_record['FullAddress'] + ',' + service + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n'
+                results.append({'distance' : distance,'record' : record})
     
     # Test to see if we have matches and if so, append those matches to our output file
     if results != []:
-        write_record(results, out_file)
+        '''
+        To Do:  Create an alternate method to find records with the closest distance and write that.
+        '''
+        data_to_write = find_closest_point(results, threshold_distance)
+        write_record(data_to_write, out_file)
+
     else:
         # write data w/o a match - single record
         results.append(bdc_item.strip('\n') + ',' + ',' + ',' + ',' + ',' + ',' + ',' ',FALSE\n')
@@ -155,43 +206,60 @@ def main():
     cpus = multiprocessing.cpu_count()
     print_with_header(f'Welcome to the BDC Fabric Comparison Tool.  Your system has: {cpus} CPUs for processing.')
 
-    # Get user inputs - Data validate
-    # while True:
-    #     bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
-    #     if FHC.MiscTools.file_check(bdc_csv_file) is True:
-    #         break
-    # while True:
-    #     sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
-    #     if FHC.MiscTools.file_check(sm_csv_file) is True:
-    #         break
-    # while True:
-    #     out_csv_file = input('Please enter path and filename of Output CSV file: ')
-    #     if FHC.MiscTools.path_check(out_csv_file) is True:
-    #         break
-    # while True:
-    #     search_area = input('What is your search radius in feet? ')
-    #     try:
-    #         if float(search_area) > 0:
-    #             break
-    #     except:
-    #         pass    
+    if args.test is True:
 
+        # (TESTING SECTION)
 
-    # (TESTING SECTION)
-    # Simulated Inputs for TESTING PURPOSES
-    # bdc_csv_file = '/home/bcalvert/Data/FCC_Active_BSL.csv'
-    # sm_csv_file = '/home/bcalvert/Data/All_SM.csv'
-    # out_csv_file = '/home/bcalvert/Data/output/All_SM_FCC_Report.csv'
-    # search_area = '50'
+        print('TESTING MODE is ACTIVE!  Data is simulated!')
 
-    # Launch GUI
-    gui = BGC.BDCGUI()
+        # Simulated Inputs for TESTING PURPOSES
+        bdc_csv_file = '/home/bcalvert/Data/FCC_Active_BSL.csv'
+        sm_csv_file = '/home/bcalvert/Data/All_SM.csv'
+        out_csv_file = '/home/bcalvert/Data/output/Test_FCC_Report.csv'
+        search_area = '5000'
 
-    # Assign GUI inputs by instance attributes
-    bdc_csv_file = gui.fcc_file
-    sm_csv_file = gui.sm_file
-    out_csv_file = gui.outfile
-    search_area = gui.distance
+        if args.verbose is True:
+            verbose_print(f'BDC File: {bdc_csv_file}')
+            verbose_print(f'ServicesManager File: {sm_csv_file}')
+            verbose_print(f'Output File: {out_csv_file}')
+            verbose_print(f'Threshold Distance: {search_area}')
+
+    else:
+
+        if args.cli is True:
+
+    
+            # Get user inputs - Data validate
+            while True:
+                bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
+                if FHC.MiscTools.file_check(bdc_csv_file) is True:
+                    break
+            while True:
+                sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
+                if FHC.MiscTools.file_check(sm_csv_file) is True:
+                    break
+            while True:
+                out_csv_file = input('Please enter path and filename of Output CSV file: ')
+                if FHC.MiscTools.path_check(out_csv_file) is True:
+                    break
+            while True:
+                search_area = input('What is your search radius in feet? ')
+                try:
+                    if float(search_area) > 0:
+                        break
+                except:
+                    pass    
+
+        else:
+
+            # Launch GUI (NORMAL OPERATION)
+            gui = BGC.BDCGUI()
+
+            # Assign GUI inputs by instance attributes
+            bdc_csv_file = gui.fcc_file
+            sm_csv_file = gui.sm_file
+            out_csv_file = gui.outfile
+            search_area = gui.distance
 
     # Set FHC instances
     bdc_file = FHC.FileHandler(bdc_csv_file)
@@ -230,22 +298,24 @@ def main():
     # Start a timer to get a total run time
     start_time = Timer()
 
-    # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function.  Use FCC Active BSL data.
+    if args.test is True:
+        # (TESTING SECTION)
+        # Single Processor - Testing (uncomment code)
+        for bdc_item in tqdm(bdc_items):
+            find_close_points(data, bdc_item)
 
-    processes = tqdm([Process(target=find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items])
-   
-    # Start Processes
-    for process in processes:
-        process.start()
-    for process in processes:
-        process.join()
+    else:
+        # (PARALLEL PROCESSING SECTION)
+        # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function.  Use FCC Active BSL data.
 
-
-    # (TESTING SECTION)
-    # Single Processor - Testing (uncomment code)
-    # for bdc_item in tqdm(bdc_items):
-    #     find_close_points(data, bdc_item)
-
+        processes = tqdm([Process(target=find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items])
+    
+        # Start Processes
+        for process in processes:
+            process.start()
+        for process in processes:
+            process.join()
+    
     # End timer
     stop_time = Timer()
 
@@ -256,4 +326,5 @@ def main():
 
 
 if __name__ == '__main__':
+    args = AC.CLIParser().get_args()
     main()
