@@ -53,3 +53,13 @@ Follow GUI prompts to configure input files, output file, and distance values.
 
 Progress will be written to the terminal (GUI input was an add-on feature).  Processing can take time, but progress is presented via a progress bar in the CLI.
 
+6/3/2023:  Added command line argument parser:
+
+./bdc.py -h
+usage: bdc.py [-h] [-c] [-v] [-t]
+
+options:
+  -h, --help     show this help message and exit
+  -c, --cli      CLI Interface for Data Input
+  -v, --verbose  Display output traps
+  -t, --test     Turn on test features
