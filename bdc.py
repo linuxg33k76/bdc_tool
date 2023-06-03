@@ -51,6 +51,21 @@ def print_with_header(text):
 
     print('*'*columns + '\n' + ' '*padding + text + '\n' + '*'*columns + '\n')
 
+def find_closest_point(data_array, max_dist):
+
+    '''
+    Sort records to find the closest point
+    '''
+
+    for i in data_array:
+        distance = i[0]['dist_val']
+        print(distance)
+        if distance <= max_dist:
+            val_to_return = i[1]
+            max_dist = distance
+    print(val_to_return)
+    quit()
+    return val_to_return
 
 def write_record(data, ofile):
 
@@ -134,12 +149,18 @@ def find_close_points(data, bdc_item):
             distance = haversine(bdc_record['latitude'], bdc_record['longitude'], loc_record['Latitude'], loc_record['Longitude'])
             if distance <= threshold_distance:
                 service = loc_record['Service'].split('_')[0]
-                results.append(bdc_item.strip('\n') + ',' + loc_record['SID'] + ',' + loc_record['FullAddress'] + ',' + service + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
-
+                # results.append(bdc_item.strip('\n') + ',' + loc_record['SID'] + ',' + loc_record['FullAddress'] + ',' + service + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
+                # Create an array entry with a dict element of distance and string of data to write
+                results.append({'dist_val': distance}, bdc_item.strip('\n') + ',' + loc_record['SID'] + ',' + loc_record['FullAddress'] + ',' + service + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
     
     # Test to see if we have matches and if so, append those matches to our output file
     if results != []:
+        '''
+        To Do:  Create an alternate method to find records with the closest distance and write that.
+        '''
+        data_to_write = find_closest_point(results)
         write_record(results, out_file)
+
     else:
         # write data w/o a match - single record
         results.append(bdc_item.strip('\n') + ',' + ',' + ',' + ',' + ',' + ',' + ',' ',FALSE\n')
