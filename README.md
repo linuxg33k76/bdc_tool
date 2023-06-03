@@ -55,11 +55,11 @@ Progress will be written to the terminal (GUI input was an add-on feature).  Pro
 
 6/3/2023:  Added command line argument parser:
 
-./bdc.py -h
-usage: bdc.py [-h] [-c] [-v] [-t]
+./bdc.py -h\
+usage: bdc.py [-h] [-c] [-v] [-t]\
 
-options:
-  -h, --help     show this help message and exit
-  -c, --cli      CLI Interface for Data Input
-  -v, --verbose  Display output traps
-  -t, --test     Turn on test features
+options:\
+  -h, --help     show this help message and exit\
+  -c, --cli      CLI Interface for Data Input\
+  -v, --verbose  Display output traps\
+  -t, --test     Turn on test features\
