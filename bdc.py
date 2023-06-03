@@ -42,7 +42,7 @@ def verbose_print(text):
     '''
 
     if args.verbose is True:
-        print(text)
+        print(f'---> {text}')
 
 
 def print_with_header(text):
@@ -213,12 +213,14 @@ def main():
         print('TESTING MODE is ACTIVE!  Data is simulated!')
 
         # Simulated Inputs for TESTING PURPOSES
-        bdc_csv_file = '/home/bcalvert/Data/FCC_Active_BSL.csv'
-        sm_csv_file = '/home/bcalvert/Data/All_SM.csv'
-        out_csv_file = '/home/bcalvert/Data/output/Test_FCC_Report.csv'
+        bdc_csv_file = './SampleData/FCC_Active_BSL.csv'
+        sm_csv_file = './SampleData/All_SM.csv'
+        home_dir = os.getenv('HOME')
+        out_csv_file = f'{home_dir}/Data/output/Test_FCC_Report.csv'
         search_area = '5000'
 
         if args.verbose is True:
+            verbose_print(f'User\'s Home Directory: {home_dir}')
             verbose_print(f'BDC File: {bdc_csv_file}')
             verbose_print(f'ServicesManager File: {sm_csv_file}')
             verbose_print(f'Output File: {out_csv_file}')
