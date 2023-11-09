@@ -6,7 +6,7 @@ This tool compares the FCC Active BSL fabric csv (file subjected to licensing th
 and VertiGIS M4 compiled Services Manager report.
 
 FCC_Active_BSL.csv headers:
-"location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude"
+"location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl"location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude","fcc_rel"_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude"
 
 M4 Services Manager headers:
 FullAddress,SID,PID,EXID,Service,Latitude,Longitude,Company,_overlaps
@@ -41,8 +41,10 @@ def verbose_print(text):
         return: none
     '''
 
-    if args.verbose is True:
-        print(f'---> {text}')
+
+
+    # if args.verbose is True:
+    print(f'---> {text}')
 
 
 def print_with_header(text):
@@ -200,7 +202,7 @@ def find_close_points(data, bdc_item):
 
 # End of ChatGPT3 section (modified)
 
-def main():
+def main(args):
 
     # Get CPU Count for Processing
     cpus = multiprocessing.cpu_count()
@@ -284,6 +286,9 @@ def main():
     bdc_items = bdc_data[1:]
     sm_items = sm_data[1:]
 
+    print(f'BDC data sample (first record): {bdc_items[0]}')
+    print(f'SM data sample (first record): {sm_items[0]}')
+
     # Data package definition
 
     data = {
@@ -329,4 +334,4 @@ def main():
 
 if __name__ == '__main__':
     args = AC.CLIParser().get_args()
-    main()
+    main(args)
