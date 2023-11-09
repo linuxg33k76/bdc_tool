@@ -24,6 +24,7 @@ import multiprocessing
 import os
 from timeit import default_timer as Timer
 from multiprocessing import Process
+from multiprocessing import Pool
 from tqdm import tqdm
 from library import FileHandlerClass as FHC
 from library import BDCGuiClass as BGC
@@ -191,13 +192,14 @@ def find_close_points(data, bdc_item):
         To Do:  Create an alternate method to find records with the closest distance and write that.
         '''
         data_to_write = find_closest_point(results, threshold_distance)
+        print(f'data to write: {data_to_write}')
         write_record(data_to_write, out_file)
 
     else:
         # write data w/o a match - single record
         results.append(bdc_item.strip('\n') + ',' + ',' + ',' + ',' + ',' + ',' + ',' ',FALSE\n')
         write_record(results, out_file)
-
+    
 
 
 # End of ChatGPT3 section (modified)
@@ -286,8 +288,9 @@ def main(args):
     bdc_items = bdc_data[1:]
     sm_items = sm_data[1:]
 
-    print(f'BDC data sample (first record): {bdc_items[0]}')
-    print(f'SM data sample (first record): {sm_items[0]}')
+    if args.verbose is True:
+        print(f'BDC data sample (first record): {bdc_items[0]}')
+        print(f'SM data sample (first record): {sm_items[0]}')
 
     # Data package definition
 
@@ -313,15 +316,23 @@ def main(args):
 
     else:
         # (PARALLEL PROCESSING SECTION)
-        # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function.  Use FCC Active BSL data.
+        # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function. Use FCC Active BSL data.
+        with Pool() as pool:
+            processes = [pool.apply_async(find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items]
+            results = [process.get() for process in tqdm(processes)]
 
-        processes = tqdm([Process(target=find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items])
+            
+
+
+        # # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function.  Use FCC Active BSL data.
+
+        # processes = tqdm([Process(target=find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items])
     
-        # Start Processes
-        for process in processes:
-            process.start()
-        for process in processes:
-            process.join()
+        # # Start Processes
+        # for process in processes:
+        #     process.start()
+        # for process in processes:
+        #     process.join()
     
     # End timer
     stop_time = Timer()
