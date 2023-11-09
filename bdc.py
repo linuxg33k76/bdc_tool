@@ -323,7 +323,7 @@ def main(args):
 
             
 
-
+        # OLD Parallel Processing Code - kept for reference
         # # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function.  Use FCC Active BSL data.
 
         # processes = tqdm([Process(target=find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items])
