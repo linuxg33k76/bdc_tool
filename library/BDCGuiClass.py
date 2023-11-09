@@ -42,7 +42,7 @@ class BDCGUI():
             [sg.Text("Select M4 SM file:       "), sg.Input(), sg.FileBrowse(initial_folder = self.home, file_types=(("Text Files", "*.csv"),))],
             # Two general input boxes with labels
             [sg.Text("Output File:                 "), sg.InputText(key="outfile",default_text = self.outfile)],
-            [sg.Text("Distance in FT:           "), sg.InputText(key="distance",default_text='50')],
+            [sg.Text("Distance in FT:           "), sg.InputText(key="distance",default_text='150')],
             # A submit button
             [sg.Button("Submit")]
         ]

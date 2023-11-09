@@ -6,7 +6,7 @@ This tool compares the FCC Active BSL fabric csv (file subjected to licensing th
 and VertiGIS M4 compiled Services Manager report.
 
 FCC_Active_BSL.csv headers:
-"location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude"
+"location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl"location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude","fcc_rel"_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude"
 
 M4 Services Manager headers:
 FullAddress,SID,PID,EXID,Service,Latitude,Longitude,Company,_overlaps
@@ -24,6 +24,7 @@ import multiprocessing
 import os
 from timeit import default_timer as Timer
 from multiprocessing import Process
+from multiprocessing import Pool
 from tqdm import tqdm
 from library import FileHandlerClass as FHC
 from library import BDCGuiClass as BGC
@@ -41,8 +42,10 @@ def verbose_print(text):
         return: none
     '''
 
-    if args.verbose is True:
-        print(f'---> {text}')
+
+
+    # if args.verbose is True:
+    print(f'---> {text}')
 
 
 def print_with_header(text):
@@ -189,18 +192,19 @@ def find_close_points(data, bdc_item):
         To Do:  Create an alternate method to find records with the closest distance and write that.
         '''
         data_to_write = find_closest_point(results, threshold_distance)
+        print(f'data to write: {data_to_write}')
         write_record(data_to_write, out_file)
 
     else:
         # write data w/o a match - single record
         results.append(bdc_item.strip('\n') + ',' + ',' + ',' + ',' + ',' + ',' + ',' ',FALSE\n')
         write_record(results, out_file)
-
+    
 
 
 # End of ChatGPT3 section (modified)
 
-def main():
+def main(args):
 
     # Get CPU Count for Processing
     cpus = multiprocessing.cpu_count()
@@ -284,6 +288,10 @@ def main():
     bdc_items = bdc_data[1:]
     sm_items = sm_data[1:]
 
+    if args.verbose is True:
+        print(f'BDC data sample (first record): {bdc_items[0]}')
+        print(f'SM data sample (first record): {sm_items[0]}')
+
     # Data package definition
 
     data = {
@@ -308,15 +316,23 @@ def main():
 
     else:
         # (PARALLEL PROCESSING SECTION)
-        # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function.  Use FCC Active BSL data.
+        # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function. Use FCC Active BSL data.
+        with Pool() as pool:
+            processes = [pool.apply_async(find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items]
+            results = [process.get() for process in tqdm(processes)]
 
-        processes = tqdm([Process(target=find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items])
+            
+
+        # OLD Parallel Processing Code - kept for reference
+        # # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function.  Use FCC Active BSL data.
+
+        # processes = tqdm([Process(target=find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items])
     
-        # Start Processes
-        for process in processes:
-            process.start()
-        for process in processes:
-            process.join()
+        # # Start Processes
+        # for process in processes:
+        #     process.start()
+        # for process in processes:
+        #     process.join()
     
     # End timer
     stop_time = Timer()
@@ -329,4 +345,4 @@ def main():
 
 if __name__ == '__main__':
     args = AC.CLIParser().get_args()
-    main()
+    main(args)
