@@ -197,16 +197,25 @@ def find_close_points(data, bdc_item):
         verbose_print(f'data to write: {data_to_write}')
         write_record(data_to_write, out_file)
 
+        # return the single record
+        return data_to_write[0]
+
     else:
         # write data w/o a match - single record
         results.append(bdc_item.strip('\n') + ',' + ',' + ',' + ',' + ',' + ',' + ',' ',FALSE\n')
         write_record(results, out_file)
-    
+
+        # return the single record
+        return results[0]
 
 
 # End of ChatGPT3 section (modified)
 
 def main():
+
+    # Get User's Home Directory
+
+    home_dir = os.getenv('HOME')
 
     # Get CPU Count for Processing
     cpus = multiprocessing.cpu_count()
@@ -221,8 +230,8 @@ def main():
         # Simulated Inputs for TESTING PURPOSES
         bdc_csv_file = './SampleData/FCC_Active_BSL.csv'
         sm_csv_file = './SampleData/All_SM.csv'
-        home_dir = os.getenv('HOME')
-        out_csv_file = f'{home_dir}/Data/output/Test_FCC_Report.csv'
+        out_csv_file = f'{home_dir}/bdc_tool/Data/output/Test_FCC_Report.csv'
+        results_csv_file = f'{home_dir}/bdc_tool/Data/output/Test_FCC_Report_Results.csv'
         search_area = '5000'
 
         if args.verbose is True:
@@ -230,6 +239,7 @@ def main():
             verbose_print(f'BDC File: {bdc_csv_file}')
             verbose_print(f'ServicesManager File: {sm_csv_file}')
             verbose_print(f'Output File: {out_csv_file}')
+            verbose_print(f'Results File: {results_csv_file}')
             verbose_print(f'Threshold Distance: {search_area}')
 
     else:
@@ -273,6 +283,8 @@ def main():
     bdc_file = FHC.FileHandler(bdc_csv_file)
     sm_file = FHC.FileHandler(sm_csv_file)
     out_file = FHC.FileHandler(out_csv_file)
+    results_csv_file = f'{home_dir}/bdc_tool/Data/output/FCC_Report_Results.csv'
+    results_file = FHC.FileHandler(results_csv_file)
 
     # Get Data
     bdc_header = bdc_file.get_csv_header()
@@ -284,6 +296,7 @@ def main():
     services_manager_headers = ',"M4_Structure_ID","FullAddress","Service","SM_LAT","SM_LON","Company","Distance","Match_Flag"\n'
     out_file_header = bdc_data[0].strip('\n') + services_manager_headers
     out_file.write_file(out_file_header)
+    results_file.write_file(out_file_header)
 
     # Read Data Files and drop the fist line (it contains headers)
 
@@ -339,6 +352,10 @@ def main():
     stop_time = Timer()
 
     total_time = (stop_time - start_time)/60
+
+    # Write results of the find_close_points function to the results file
+    # This is an alternative Write Method - write once instead of multiple times as directed by the find_close_points function
+    write_record(results, results_file)
     
     # Print out total process time
     print_with_header(f'Complete! Overall Time: {total_time:.2f} minutes.')
