@@ -127,8 +127,8 @@ def haversine(lat1, lon1, lat2, lon2):
 
         lat1: string (to be converted to float) - FCC BSL info
         lon1: string (to be converted to float) - FCC BSL info
-        lat2: string (to be converted to float) - M4 SM info
-        lon2: string (to be converted to float) - M4SM info
+        lat2: string (to be converted to float) - M4 ServicesManager info
+        lon2: string (to be converted to float) - M4 SservicesManager info
 
         return: distance - Product of the Radius of Earth (in feet) and Haversine Formula
     '''
@@ -319,13 +319,12 @@ def main():
     else:
         # (PARALLEL PROCESSING SECTION)
         # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function. Use FCC Active BSL data.
+        
         with Pool() as pool:
             processes = [pool.apply_async(find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items]
             results = [process.get() for process in tqdm(processes)]
 
-            
-
-        # OLD Parallel Processing Code - kept for reference
+        # OLD Parallel Processing Code (pre finding the Pool() class) - kept for reference
         # # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function.  Use FCC Active BSL data.
 
         # processes = tqdm([Process(target=find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items])
@@ -346,5 +345,4 @@ def main():
 
 
 if __name__ == '__main__':
-    
     main()
