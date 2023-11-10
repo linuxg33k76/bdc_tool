@@ -30,6 +30,10 @@ from library import FileHandlerClass as FHC
 from library import BDCGuiClass as BGC
 from library import ArgsClass as AC
 
+# Class Instances
+
+args = AC.CLIParser().get_args()
+
 # Function Definitions
 
 def verbose_print(text):
@@ -42,10 +46,8 @@ def verbose_print(text):
         return: none
     '''
 
-
-
-    # if args.verbose is True:
-    print(f'---> {text}')
+    if args.verbose is True:
+        print(f'---> {text}')
 
 
 def print_with_header(text):
@@ -192,7 +194,7 @@ def find_close_points(data, bdc_item):
         To Do:  Create an alternate method to find records with the closest distance and write that.
         '''
         data_to_write = find_closest_point(results, threshold_distance)
-        print(f'data to write: {data_to_write}')
+        verbose_print(f'data to write: {data_to_write}')
         write_record(data_to_write, out_file)
 
     else:
@@ -204,7 +206,7 @@ def find_close_points(data, bdc_item):
 
 # End of ChatGPT3 section (modified)
 
-def main(args):
+def main():
 
     # Get CPU Count for Processing
     cpus = multiprocessing.cpu_count()
@@ -344,5 +346,5 @@ def main(args):
 
 
 if __name__ == '__main__':
-    args = AC.CLIParser().get_args()
-    main(args)
+    
+    main()
