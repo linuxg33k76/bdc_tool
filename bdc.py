@@ -348,15 +348,16 @@ def main():
         # for process in processes:
         #     process.join()
     
-    # End timer
-    stop_time = Timer()
-
-    total_time = (stop_time - start_time)/60
 
     # Write results of the find_close_points function to the results file
     # This is an alternative Write Method - write once instead of multiple times as directed by the find_close_points function
     write_record(results, results_file)
     
+    # End timer
+    stop_time = Timer()
+
+    total_time = (stop_time - start_time)/60
+
     # Print out total process time
     print_with_header(f'Complete! Overall Time: {total_time:.2f} minutes.')
 
