@@ -22,8 +22,10 @@ Apache 2.0 License
 import math
 import multiprocessing
 import os
-from timeit import default_timer as Timer
-from multiprocessing import Process
+import pandas as pd
+# from timeit import default_timer as Timer
+from datetime import datetime
+# from multiprocessing import Process
 from multiprocessing import Pool
 from tqdm import tqdm
 from library import FileHandlerClass as FHC
@@ -209,6 +211,27 @@ def find_close_points(data, bdc_item):
         return results[0]
 
 
+def post_process(home_dir, results_file):
+    
+    # Define Output File
+    date_ref = datetime.today().strftime('%d-%b-%Y')
+    output_file = f'{home_dir}/bdc_tool/Data/output/Deduped_FCC_Report_{date_ref}.csv'
+
+    # Read Results file csv
+    df = pd.read_csv(results_file)
+
+    # Will use FullAddress to find duplicates
+    # Will use Distance to locate the closest location match to keep
+
+    # Group by FullAddress and find the minimum distance
+    idx = df.groupby(['FullAddress'])['Distance'].idxmin()
+
+    # Create a new dataframe with the minimum distance
+    df_min = df.loc[idx]
+
+    # Write the results to a new file
+    df_min.to_csv(f'{output_file}', sep=',', encoding='utf-8', index=False)
+
 # End of ChatGPT3 section (modified)
 
 def main():
@@ -216,6 +239,7 @@ def main():
     # Get User's Home Directory
 
     home_dir = os.getenv('HOME')
+    date_ref = datetime.today().strftime('%d-%b-%Y')
 
     # Get CPU Count for Processing
     cpus = multiprocessing.cpu_count()
@@ -230,8 +254,8 @@ def main():
         # Simulated Inputs for TESTING PURPOSES
         bdc_csv_file = './SampleData/FCC_Active_BSL.csv'
         sm_csv_file = './SampleData/All_SM.csv'
-        out_csv_file = f'{home_dir}/bdc_tool/Data/output/Test_FCC_Report.csv'
-        results_csv_file = f'{home_dir}/bdc_tool/Data/output/Test_FCC_Report_Results.csv'
+        out_csv_file = f'{home_dir}/bdc_tool/Data/output/Test_FCC_Report_{date_ref}.csv'
+        results_csv_file = f'{home_dir}/bdc_tool/Data/output/Test_FCC_Report_Results_{date_ref}.csv'
         search_area = '5000'
 
         if args.verbose is True:
@@ -283,7 +307,7 @@ def main():
     bdc_file = FHC.FileHandler(bdc_csv_file)
     sm_file = FHC.FileHandler(sm_csv_file)
     out_file = FHC.FileHandler(out_csv_file)
-    results_csv_file = f'{home_dir}/bdc_tool/Data/output/FCC_Report_Results.csv'
+    results_csv_file = f'{home_dir}/bdc_tool/Data/output/FCC_Report_Results_{date_ref}.csv'
     results_file = FHC.FileHandler(results_csv_file)
 
     # Get Data
@@ -321,7 +345,8 @@ def main():
     # Run Iterator - Multiple instances
    
     # Start a timer to get a total run time
-    start_time = Timer()
+    # start_time = Timer()
+    start_time = datetime.now()
 
     if args.test is True:
         # (TESTING SECTION)
@@ -352,14 +377,17 @@ def main():
     # Write results of the find_close_points function to the results file
     # This is an alternative Write Method - write once instead of multiple times as directed by the find_close_points function
     write_record(results, results_file)
-    
+    post_process(home_dir, results_csv_file)
+
+
     # End timer
-    stop_time = Timer()
+    # stop_time = Timer()
+    stop_time = datetime.now()
 
     total_time = (stop_time - start_time)/60
 
     # Print out total process time
-    print_with_header(f'Complete! Overall Time: {total_time:.2f} minutes.')
+    print_with_header(f'Complete! Overall Time: {total_time}.')
 
 
 if __name__ == '__main__':
