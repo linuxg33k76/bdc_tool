@@ -43,8 +43,8 @@ FullAddress,SID,PID,EXID,Service,Latitude,Longitude,Company,_overlaps
 
 Dependencies:
 
-PySimpleGUI: *pip3 install PySimpleGui*
-TQDM: *pip3 install tqdm*
+PySimpleGUI: *pip3 install PySimpleGui*\
+TQDM: *pip3 install tqdm*\
 Pandas:  *pip3 install pandas*
 
 **Note**  This may require python-tk package to work (Linux or WSL applications).  I have not tested on Windows 10/11 ... yet!
@@ -57,11 +57,11 @@ Progress will be written to the terminal (GUI input was an add-on feature).  Pro
 
 6/3/2023:  Added command line argument parser:
 
-./bdc.py -h
+./bdc.py -h\
 usage: bdc.py [-h] [-c] [-v] [-t]\
 
 options:
   -h, --help     show this help message and exit\
   -c, --cli      CLI Interface for Data Input\
   -v, --verbose  Display output traps\
-  -t, --test     Turn on test features\
+  -t, --test     Turn on test features
