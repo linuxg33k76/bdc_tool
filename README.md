@@ -43,7 +43,9 @@ FullAddress,SID,PID,EXID,Service,Latitude,Longitude,Company,_overlaps
 
 Dependencies:
 
-PySimpleGUI: *pip install PySimpleGui*
+PySimpleGUI: *pip3 install PySimpleGui*
+TQDM: *pip3 install tqdm*
+Pandas:  *pip3 install pandas*
 
 **Note**  This may require python-tk package to work (Linux or WSL applications).  I have not tested on Windows 10/11 ... yet!
 
