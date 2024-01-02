@@ -307,7 +307,7 @@ def main():
     bdc_file = FHC.FileHandler(bdc_csv_file)
     sm_file = FHC.FileHandler(sm_csv_file)
     out_file = FHC.FileHandler(out_csv_file)
-    results_csv_file = f'{home_dir}/bdc_tool/Data/output/FCC_Report_Results_{date_ref}.csv'
+    results_csv_file = f'{home_dir}/bdc_tool/output/FCC_Report_Results_{date_ref}.csv'
     results_file = FHC.FileHandler(results_csv_file)
 
     # Get Data

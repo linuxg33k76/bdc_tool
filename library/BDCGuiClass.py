@@ -14,7 +14,7 @@ class BDCGUI():
         '''
 
         self.home = os.getenv("HOME")
-        self.outfile = self.home + '/bdc_tool/Data/output/bdc_tool_ouput.csv'
+        self.outfile = self.home + '/bdc_tool/output/bdc_tool_ouput.csv'
 
         self.create_gui()
        
