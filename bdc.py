@@ -215,7 +215,7 @@ def post_process(home_dir, results_file):
     
     # Define Output File
     date_ref = datetime.today().strftime('%d-%b-%Y')
-    output_file = f'{home_dir}/bdc_tool/Data/output/Deduped_FCC_Report_{date_ref}.csv'
+    output_file = f'{home_dir}/bdc_tool/output/Deduped_FCC_Report_{date_ref}.csv'
 
     # Read Results file csv
     df = pd.read_csv(results_file)
