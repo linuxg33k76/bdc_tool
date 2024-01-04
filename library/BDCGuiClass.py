@@ -3,6 +3,7 @@
 # Import PySimpleGUI
 import PySimpleGUI as sg
 import os
+from datetime import datetime
 
 class BDCGUI():
 
@@ -12,9 +13,9 @@ class BDCGUI():
         Initialize Class with some key file elements.
         This class is specific code to supplement the BDC Tool.
         '''
-
+        self.date_ref = datetime.today().strftime('%d-%b-%Y')
         self.home = os.getenv("HOME")
-        self.outfile = self.home + '/bdc_tool/output/bdc_tool_ouput.csv'
+        self.outfile = self.home + f'/bdc_tool/output/bdc_tool_ouput{self.date_ref}.csv'
 
         self.create_gui()
        
