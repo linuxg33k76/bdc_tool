@@ -15,7 +15,7 @@ class BDCGUI():
         '''
         self.date_ref = datetime.today().strftime('%d-%b-%Y')
         self.home = os.getenv("HOME")
-        self.outfile = self.home + f'/bdc_tool/output/bdc_tool_ouput{self.date_ref}.csv'
+        self.outfile = self.home + f'/bdc_tool/output/bdc_tool_ouput_{self.date_ref}.csv'
 
         self.create_gui()
        
