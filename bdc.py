@@ -365,6 +365,10 @@ def main():
     # start_time = Timer()
     start_time = datetime.now()
 
+    # Print Search Area
+
+    print_with_header(f'\nSearch Area: {search_area} feet\n')
+
     if args.test is True:
         # (TESTING SECTION)
         # Single Processor - Testing (uncomment code)
@@ -402,10 +406,6 @@ def main():
     stop_time = datetime.now()
 
     total_time = (stop_time - start_time)/60
-
-    # Get processed File Stats
-
-
 
     # Print out total process time
     print_with_header(f'Complete! Overall Time: {total_time}.')
