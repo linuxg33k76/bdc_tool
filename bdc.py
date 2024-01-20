@@ -71,7 +71,7 @@ def print_with_header(text):
 
     padding = int((columns - len(text))/2)
 
-    print('*'*columns + '\n' + ' '*padding + text + '\n' + '*'*columns + '\n')
+    print('\n'+'*'*columns + '\n' + ' '*padding + text + '\n' + '*'*columns + '\n')
 
 def find_closest_point(data_array, max_dist):
 
@@ -232,6 +232,23 @@ def post_process(home_dir, results_file):
     # Write the results to a new file
     df_min.to_csv(f'{output_file}', sep=',', encoding='utf-8', index=False)
 
+    # Print number of unique records with a match
+
+    print_with_header(f'Output File: {output_file}\nNumber of unique records with a match: {len(df_min)}')
+    
+    # Print the number of service = Fiber
+
+    # df_fiber = df_min[df_min['Service'] == 'Fiber']
+
+    # print_with_header(f'Number of unique records with a match and service = Fiber: {len(df_fiber)}')
+
+    # Print a pivot table of the data by service and company
+
+    df_pivot = df_min.pivot_table(index=['Service'], columns=['Company'], aggfunc='size', fill_value=0)
+
+    print_with_header(f'Pivot Table of the data by Service Type and Company:\n\n{df_pivot}\n')
+
+
 # End of ChatGPT3 section (modified)
 
 def main():
@@ -385,6 +402,10 @@ def main():
     stop_time = datetime.now()
 
     total_time = (stop_time - start_time)/60
+
+    # Get processed File Stats
+
+
 
     # Print out total process time
     print_with_header(f'Complete! Overall Time: {total_time}.')
