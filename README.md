@@ -47,7 +47,7 @@ PySimpleGUI: *pip3 install PySimpleGui*\
 TQDM: *pip3 install tqdm*\
 Pandas:  *pip3 install pandas*
 
-**Note**  This may require python-tk package to work (Linux or WSL applications).  I have not tested on Windows 10/11 ... yet!
+**Note**  This may require python-tk package to work (Linux or WSL applications).  Mac OS will require brew to be installed and the package python-tk@<Python version> to be installed first!  I have not tested on Windows 10/11 ... yet!
 
 Follow GUI prompts to configure input files, output file, and distance values.
 
@@ -64,4 +64,10 @@ options:
   -h, --help     show this help message and exit\
   -c, --cli      CLI Interface for Data Input\
   -v, --verbose  Display output traps\
-  -t, --test     Turn on test features
+  -t, --test     Turn on test features\
+
+2/25/2024:  Added install and uninstall commands!\
+
+install.py - installs the virtual environment and required packages.\
+uninstall.py - removes the virtual environment.\
+
