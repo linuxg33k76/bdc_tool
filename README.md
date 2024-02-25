@@ -69,5 +69,5 @@ options:
 2/25/2024:  Added install and uninstall commands!\
 
 install.py - installs the virtual environment and required packages.\
-uninstall.py - removes the virtual environment.\
+uninstall.py - removes the virtual environment.
 
