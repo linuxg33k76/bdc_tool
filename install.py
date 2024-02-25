@@ -11,15 +11,16 @@ directory = os.getcwd()
 os.system(f'python3 -m venv {directory}')
 
 # Install the required packages in the virtual environment
+print('\n***Creating virtual environment and installing packages...***\n')
 os.system('source bin/activate')
 os.system(f'{directory}/bin/python3 -m pip install -r requirements.txt')
 
 # Print the command to activate the virtual environment
-print('\n\tVirtual environment created and packages installed successfully!')
-print('\tTo activate the virtual environment, run the following command:')
-print(f'\tcd {directory} && source bin/activate')
-print('\n\tTo deactivate the virtual environment, run the following command:')
-print('\tdeactivate')
+print('\n***Virtual environment created and packages installed successfully!***')
+print('\nTo activate the virtual environment, run the following command:')
+print(f'\n\tcd {directory} && source bin/activate')
+print('\nTo deactivate the virtual environment, run the following command:')
+print('\n\tdeactivate\n')
 
 
 
