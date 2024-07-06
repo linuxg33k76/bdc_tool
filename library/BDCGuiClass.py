@@ -1,7 +1,8 @@
 #!/bin/env python3
 
-# Import PySimpleGUI
-import PySimpleGUI as sg
+# Imports
+import tkinter as tk
+from tkinter import filedialog
 import os
 from datetime import datetime
 
@@ -10,12 +11,15 @@ class BDCGUI():
     def __init__(self):
 
         '''
+
         Initialize Class with some key file elements.
         This class is specific code to supplement the BDC Tool.
+
         '''
         self.date_ref = datetime.today().strftime('%d-%b-%Y')
         self.home = os.getenv("HOME")
         self.outfile = self.home + f'/bdc_tool/output/bdc_tool_ouput_{self.date_ref}.csv'
+        self.distance = '300'
 
         self.create_gui()
        
@@ -23,6 +27,7 @@ class BDCGUI():
     def create_gui(self):
 
         '''
+
         Create the main user input window.
 
         class attributes : various
@@ -31,50 +36,103 @@ class BDCGUI():
 
         '''
         # Set Window Theme
-        sg.theme('System Default')
+        # sg.theme('System Default')
+        self.root = tk.Tk()
 
         # Define Window Title
         title = "BDC Tool GUI"
 
-        # Define the layout of the GUI
-        layout = [
-            # Two file select input boxes with labels
-            [sg.Text("Select FCC Fabric file:"), sg.Input(), sg.FileBrowse(initial_folder = self.home, file_types=(("Text Files", "*.csv"),))],
-            [sg.Text("Select M4 SM file:       "), sg.Input(), sg.FileBrowse(initial_folder = self.home, file_types=(("Text Files", "*.csv"),))],
-            # Two general input boxes with labels
-            [sg.Text("Output File:                 "), sg.InputText(key="outfile",default_text = self.outfile)],
-            [sg.Text("Distance in FT:           "), sg.InputText(key="distance",default_text='150')],
-            # A submit button
-            [sg.Button("Submit")]
-        ]
 
-        # Create the window object
-        window = sg.Window(title, layout)
+        # Create the main window
+        self.root.title(title)
+        self.root.geometry("900x300")
 
-        # Event loop to process user input
-        while True:
-            event, values = window.read()
-            
-            # If user closes window or clicks submit, break loop
-            if event in (None, "Submit"):
-                break
+        # Create labels and entry fields
 
-        # Close the window
-        window.close()
+        # Create FCC File Entry
+        tk.Label(self.root, text="Select FCC File:").grid(row=0, column=0, sticky='w')
+        self.fcc_file_entry = tk.Entry(self.root, width=80)
+        self.fcc_file_entry.grid(row=1, column=0)
+        tk.Button(self.root, text="Browse FCC File", command=self.browse_fcc).grid(row=1, column=2)
 
-        # Create data dictionary of user inputs for testing
-        self.data = {
-            "fcc_file" : values[0],
-            "sm_file"  : values[1],
-            "outfile" : values['outfile'],
-            "distance" : values['distance']
+        # Create Services Manager (SM) File Entry    
+        tk.Label(self.root, text="Select SM File:").grid(row=2, column=0, sticky='w')
+        self.sm_file_entry = tk.Entry(self.root, width=80)
+        self.sm_file_entry.grid(row=3, column=0)
+        tk.Button(self.root, text="Browse SM File", command=self.browse_sm).grid(row=3, column=2)
+
+        # Create Output File Entry
+        tk.Label(self.root, text="Enter Output File:", justify="left").grid(row=4, column=0, sticky='w')
+        self.outfile_entry = tk.Entry(self.root, justify="left", width=80)
+        self.outfile_entry.insert(0, self.outfile)
+        self.outfile_entry.grid(row=5, column=0)
+
+        # Create Distance Entry
+        tk.Label(self.root, text="Enter Distance:", justify="left").grid(row=6, column=0, sticky='w')
+        self.distance_entry = tk.Entry(self.root, justify="right", width=80)
+        self.distance_entry.insert(0, self.distance)
+        self.distance_entry.grid(row=7, column=0)
+        tk.Label(self.root, text="Distance in feet").grid(row=7, column=2)
+
+        # Create Submit button and close window when clicked
+        tk.Button(self.root, text="Submit", command=self.process_data).grid(row=8, column=0)
+        
+        # Create Close button and close window when clicked
+        tk.Button(self.root, text="Close", command=self.root.destroy).grid(row=8, column=2)
+
+        self.root.mainloop()
+
+        
+    def browse_fcc(self):
+
+        '''
+
+        Browse for the FCC file and insert the path into the entry field.
+
+        class attributes : various
+
+        returns: None
+
+        '''
+
+        self.fcc_file_entry.delete(0, tk.END)
+        self.fcc_file_entry.insert(0, filedialog.askopenfilename())
+
+    def browse_sm(self):
+
+        '''
+        Browse for the SM file and insert the path into the entry field.
+
+        class attributes : various
+
+        returns: None
+        '''
+
+        self.sm_file_entry.delete(0, tk.END)
+        self.sm_file_entry.insert(0, filedialog.askopenfilename())
+
+    def process_data(self):
+
+        '''
+        Process the data entered by the user in the GUI.
+        
+        class attributes : various
+
+        returns: None
+        '''
+
+        data_dict = {
+            'fcc_file': self.fcc_file_entry.get(),
+            'sm_file': self.sm_file_entry.get(),
+            'outfile': self.outfile_entry.get(),
+            'distance': self.distance_entry.get()
         }
 
         # Assign User input to class attributes for assignment in main program
-        self.fcc_file = values[0]
-        self.sm_file = values[1]
-        self.outfile = values['outfile']
-        self.distance = values['distance']
+        self.fcc_file = data_dict['fcc_file']
+        self.sm_file = data_dict['sm_file']
+        self.outfile = data_dict['outfile']
+        self.distance = data_dict['distance']
 
         # Test for outfile path and create if it does not exist
         p, f = os.path.split(self.outfile)
@@ -84,4 +142,5 @@ class BDCGUI():
             os.makedirs(p)
 
         # Print the values entered by user
-        # print(self.data)
+        # print(data_dict)
+
