@@ -95,7 +95,9 @@ class BDCGUI():
         '''
 
         self.fcc_file_entry.delete(0, tk.END)
-        self.fcc_file_entry.insert(0, filedialog.askopenfilename())
+
+        # Open the file dialog looking for *.csv files starting from the user's home directory and insert the path into the entry field
+        self.fcc_file_entry.insert(0, filedialog.askopenfilename(title="Select FCC Active BSL File", initialdir=self.home, filetypes=[("CSV files", "*.csv")]))
 
     def browse_sm(self):
 
@@ -108,7 +110,9 @@ class BDCGUI():
         '''
 
         self.sm_file_entry.delete(0, tk.END)
-        self.sm_file_entry.insert(0, filedialog.askopenfilename())
+
+        # Open the file dialog looking for *.csv files starting from the user's home directory and insert the path into the entry field
+        self.sm_file_entry.insert(0, filedialog.askopenfilename(title="Select Services Manager File", initialdir=self.home, filetypes=[("CSV files", "*.csv")]))
 
     def process_data(self):
 
