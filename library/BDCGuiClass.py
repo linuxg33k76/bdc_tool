@@ -3,6 +3,7 @@
 # Imports
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import messagebox
 import os
 from datetime import datetime
 
@@ -127,8 +128,19 @@ class BDCGUI():
         }
 
         # Assign User input to class attributes for assignment in main program
-        self.fcc_file = data_dict['fcc_file']
-        self.sm_file = data_dict['sm_file']
+        if data_dict['fcc_file'] != '':
+            self.fcc_file = data_dict['fcc_file']
+        else:
+            messagebox.showerror('Error', 'Please select an FCC file.')
+            return
+        
+        if data_dict['sm_file'] != '':
+            self.sm_file = data_dict['sm_file']
+        else:
+            messagebox.showerror('Error', 'Please select an Services Manager file.')
+            return
+        
+        # These two fields have default values
         self.outfile = data_dict['outfile']
         self.distance = data_dict['distance']
 
@@ -141,6 +153,9 @@ class BDCGUI():
 
         # Print the values entered by user
         # print(data_dict)
+
+        # Display message that the data is processing
+        messagebox.showinfo('Processing', 'Data is being processed. Please wait...')
 
         # Close the GUI
         self.root.destroy()
