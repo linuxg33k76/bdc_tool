@@ -59,24 +59,24 @@ class BDCGUI():
         # Create Services Manager (SM) File Entry    
         tk.Label(self.root, text="Select SM File:").grid(row=2, column=0, sticky='w')
         self.sm_file_entry = tk.Entry(self.root, width=80)
-        self.sm_file_entry.grid(row=3, column=0)
+        self.sm_file_entry.grid(row=3, column=0, padx=5)
         tk.Button(self.root, text="Browse SM File", command=self.browse_sm).grid(row=3, column=2)
 
         # Create Output File Entry
         tk.Label(self.root, text="Enter Output File:", justify="left").grid(row=4, column=0, sticky='w')
         self.outfile_entry = tk.Entry(self.root, justify="left", width=80)
         self.outfile_entry.insert(0, self.outfile)
-        self.outfile_entry.grid(row=5, column=0)
+        self.outfile_entry.grid(row=5, column=0, padx=5)
 
         # Create Distance Entry
         tk.Label(self.root, text="Enter Distance:", justify="left").grid(row=6, column=0, sticky='w')
         self.distance_entry = tk.Entry(self.root, justify="right", width=80)
         self.distance_entry.insert(0, self.distance)
         self.distance_entry.grid(row=7, column=0)
-        tk.Label(self.root, text="Distance in feet").grid(row=7, column=2)
+        tk.Label(self.root, text="Distance in feet").grid(row=7, column=2, padx=5)
 
         # Create Submit button and close window when clicked
-        tk.Button(self.root, text="Submit", command=self.process_data).grid(row=8, column=0)
+        tk.Button(self.root, text="Submit", bg='blue', fg='white', command=self.process_data).grid(row=12, column=0, pady=10)
 
         # Run the GUI
         self.root.mainloop()
