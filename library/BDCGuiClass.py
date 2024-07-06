@@ -76,10 +76,8 @@ class BDCGUI():
 
         # Create Submit button and close window when clicked
         tk.Button(self.root, text="Submit", command=self.process_data).grid(row=8, column=0)
-        
-        # Create Close button and close window when clicked
-        tk.Button(self.root, text="Close", command=self.root.destroy).grid(row=8, column=2)
 
+        # Run the GUI
         self.root.mainloop()
 
         
@@ -144,3 +142,5 @@ class BDCGUI():
         # Print the values entered by user
         # print(data_dict)
 
+        # Close the GUI
+        self.root.destroy()
