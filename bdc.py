@@ -6,289 +6,266 @@ This tool compares the FCC Active BSL fabric csv (file subjected to licensing th
 and VertiGIS M4 compiled Services Manager report.
 
 FCC_Active_BSL.csv headers:
-"location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl"location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude","fcc_rel"_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude"
+"location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude"
 
 M4 Services Manager headers:
 FullAddress,SID,PID,EXID,Service,Latitude,Longitude,Company,_overlaps
 
 Program Created by Ben Calvert (and ChatGPT3)
 Date: 2/4/2023
+Refactored: 12/15/2025
 
 Apache 2.0 License
-
 '''
 
-
+import csv
+import logging
 import math
 import multiprocessing
 import os
-import pandas as pd
-# from timeit import default_timer as Timer
+from functools import partial
 from datetime import datetime
-# from multiprocessing import Process
 from multiprocessing import Pool
+from pathlib import Path
+from typing import Dict, List, Optional, Any
+
+import pandas as pd
 from tqdm import tqdm
+
 from library import FileHandlerClass as FHC
 from library import BDCGuiClass as BGC
 from library import ArgsClass as AC
 
-# Class Instances
+# Configuration
+EARTH_RADIUS_FEET = 20_902_766
 
+# Setup Logging
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger(__name__)
+
+# Class Instances
 args = AC.CLIParser().get_args()
+if args.verbose:
+    logger.setLevel(logging.DEBUG)
 
 # Function Definitions
 
-def verbose_print(text):
-
+def print_with_header(text: str) -> None:
     '''
-        Checks for verbose mode and if True, prints test for debugging.
-
-        text: string
-
-        return: none
+    Header template for program to print data in a visually pleasing format.
     '''
-
-    if args.verbose is True:
-        print(f'---> {text}')
-
-
-def print_with_header(text):
-
-    '''
-        Header template for program to print data in an visually pleasing format.
-
-        text: string
-
-        return: None
-    '''
-
     term_width = FHC.MiscTools().get_terminal_width()
+    columns = min(term_width, 120)
+    padding = int((columns - len(text)) / 2)
+    print('\n' + '*' * columns + '\n' + ' ' * padding + text + '\n' + '*' * columns + '\n')
 
-    if term_width > 120:
-        columns = 120
-    else:
-        columns = term_width
 
-    padding = int((columns - len(text))/2)
-
-    print('\n'+'*'*columns + '\n' + ' '*padding + text + '\n' + '*'*columns + '\n')
-
-def find_closest_point(data_array, max_dist):
-
+def find_closest_point(data_array: List[Dict[str, Any]], max_dist: float) -> Optional[str]:
     '''
-        Sort records to find the closest point
-
-        data_array: array of dictionary data
-        max_dist: float
-
-        return: array of 1 value
-
+    Sort records to find the closest point.
     '''
+    val_to_return = None
+    current_min_dist = max_dist
 
-    return_val = []
+    logger.debug(f'Array size: {len(data_array)}')
 
-    verbose_print(f'Array size: {len(data_array)}')
+    for item in data_array:
+        distance = item['distance']
+        logger.debug(f'Distance Value: {distance}')
+        # We want the smallest distance that is still within the max_dist (which is already filtered, but good to check)
+        if distance <= current_min_dist:
+            val_to_return = item['record']
+            current_min_dist = distance
+            logger.debug(f'New Max Distance (Closer Found): {current_min_dist}')
 
-    # loop thru the values in the array
-    for i in data_array:
-        distance = i['distance']
-        verbose_print(f'Distance Value: {distance}')
-        if distance <= max_dist:
-            val_to_return = i['record']
-            max_dist = distance
-            verbose_print(f'Max Distance: {max_dist}')
+    logger.debug(f'String to return: {val_to_return}')
+    
+    if val_to_return is None:
+        # Should technically not happen if data_array is populated correctly based on threshold
+        return None
+        
+    return val_to_return
 
-    # Format as an arraw for writing - written this way for consistency
-    verbose_print(f'String to return: {val_to_return}')
-    return_val.append(val_to_return)
-    return return_val
 
-def write_record(data, ofile):
-
+def write_record(data: List[str], ofile: Any) -> None:
     '''
-        Appends Data to specified output file
-
-        data: array
-
-        return: None
+    Appends Data to specified output file.
     '''
-
-    # Iterate through data array and write line(s) 
     for item in data:
         ofile.write_append_to_file(item)
 
 
-# Created by ChatGPT3 (modified by Ben C.)
-def haversine(lat1, lon1, lat2, lon2):
-
+def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     '''
-        Haversine Formula Function - Calculate the distance between two geographic coordinates.
-        Original function created by ChatGPT3 and modified to fit ver 1 of this program.
-
-        https://www.geeksforgeeks.org/haversine-formula-to-find-distance-between-two-points-on-a-sphere/
-
-        lat1: string (to be converted to float) - FCC BSL info
-        lon1: string (to be converted to float) - FCC BSL info
-        lat2: string (to be converted to float) - M4 ServicesManager info
-        lon2: string (to be converted to float) - M4 SservicesManager info
-
-        return: distance - Product of the Radius of Earth (in feet) and Haversine Formula
+    Haversine Formula Function - Calculate the distance between two geographic coordinates.
     '''
+    try:
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a = (math.sin(dlat / 2) ** 2) + (math.cos(math.radians(lat1)) *
+             math.cos(math.radians(lat2)) * (math.sin(dlon / 2) ** 2))
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return EARTH_RADIUS_FEET * c
+    except Exception as e:
+        logger.error(f"Error calculating haversine distance: {e}")
+        return float('inf')
 
-    # Convert Strings to Floats
-    lat1 = float(lat1)
-    lat2 = float(lat2)
-    lon1 = float(lon1)
-    lon2 = float(lon2)
 
-    R = 20_902_766  # radius of Earth in feet
-    dlat = math.radians(lat2 - lat1)
-    dlon = math.radians(lon2 - lon1)
-    a = (math.sin(dlat / 2) ** 2) + (math.cos(math.radians(lat1)) *
-         math.cos(math.radians(lat2)) * (math.sin(dlon / 2) ** 2))
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return R * c
-
-def find_close_points(data, bdc_item):
-
+def parse_csv_line(line: str) -> List[str]:
     '''
-        Find close points - Iterating Function.
-        Function will create a "results" list and pass that to a file write "append" function.
-
-        data: dictionary
-        bdc_item: string - single line of the FCC Active BSL data file
-
-        return: None
+    Robustly parse a CSV line using the csv module to handle quotes and commas.
     '''
+    try:
+        # csv.reader expects an iterable of strings, so we pass [line]
+        # next() gets the first (and only) row parsed
+        return next(csv.reader([line.strip()]))
+    except Exception:
+        # Fallback to simple split if csv parsing fails
+        return line.strip().replace('"', '').split(',')
 
+
+def find_close_points(data: Dict[str, Any], bdc_item: str) -> str:
+    '''
+    Find close points - Iterating Function.
+    Returns the formatted string to be written to the file.
+    '''
     # Unpack data dictionary
     bdc_header = data['bdc_header']
     sm_header = data['sm_header']
-    out_file = data['output_file']
     locations = data['sm_items']
-    threshold_distance = float(data['search_area'])  # convert to float from string
+    threshold_distance = float(data['search_area'])
 
-    # Create an addressible dictionary record using the bdc file header information and the single FCC Active BSL record
-    bdc_array = bdc_item.strip('\n').replace('"','').split(',')
+    # Create an addressible dictionary record using the bdc file header information
+    bdc_array = parse_csv_line(bdc_item)
+    
+    # Safety check for malformed lines
+    if len(bdc_array) != len(bdc_header):
+        logger.warning(f"Skipping malformed BDC line: {bdc_item}")
+        return f'{bdc_item.strip()},,,,,,,,FALSE\n'
+
     bdc_record = dict(zip(bdc_header, bdc_array))
 
-    # Initialize the results array and start looping through the ServicesManager data
-    results = []
-    for location in locations:
+    try:
+        lat1 = float(bdc_record['latitude'])
+        lon1 = float(bdc_record['longitude'])
+    except (ValueError, KeyError):
+        return f'{bdc_item.strip()},,,,,,,,FALSE\n'
 
-        # Create an addressible dictionary record using the M4 Services Manager data file and a single M4 Services Manager record
-        loc_array = location.strip('\n').replace('"','').split(',')
+    # Initialize the results array
+    matches = []
+    
+    for location in locations:
+        loc_array = parse_csv_line(location)
+        if len(loc_array) != len(sm_header):
+            continue
+            
         loc_record = dict(zip(sm_header, loc_array))
 
-        # Test for NULL values in Latitude and Longitude dictionary items
-        if loc_record['Latitude'].upper() != 'NULL' and loc_record['Longitude'].upper() != 'NULL':
-            distance = haversine(bdc_record['latitude'], bdc_record['longitude'], loc_record['Latitude'], loc_record['Longitude'])
-            if distance <= threshold_distance:
-                service = loc_record['Service'].split('_')[0]
-                # results.append(bdc_item.strip('\n') + ',' + loc_record['SID'] + ',' + loc_record['FullAddress'] + ',' + service + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n')
-                # Create an array entry with a dict element of distance and string of data to write
-                record = bdc_item.strip('\n') + ',' + loc_record['SID'] + ',' + loc_record['FullAddress'] + ',' + service + ',' + loc_record['Latitude'] + ',' + loc_record['Longitude'] + ',' + loc_record['Company'] +',' + str(distance) + ',TRUE\n'
-                results.append({'distance' : distance,'record' : record})
-    
-    # Test to see if we have matches and if so, append those matches to our output file
-    if results != []:
-        '''
-        To Do:  Create an alternate method to find records with the closest distance and write that.
-        '''
-        data_to_write = find_closest_point(results, threshold_distance)
-        verbose_print(f'data to write: {data_to_write}')
-        write_record(data_to_write, out_file)
+        # Test for NULL values
+        if (loc_record.get('Latitude', '').upper() != 'NULL' and 
+            loc_record.get('Longitude', '').upper() != 'NULL'):
+            
+            try:
+                lat2 = float(loc_record['Latitude'])
+                lon2 = float(loc_record['Longitude'])
+                
+                distance = haversine(lat1, lon1, lat2, lon2)
+                
+                if distance <= threshold_distance:
+                    service = loc_record.get('Service', '').split('_')[0]
+                    
+                    # Create the result string
+                    record = (f"{bdc_item.strip()},"
+                              f"{loc_record.get('SID', '')},"
+                              f"{loc_record.get('FullAddress', '')},"
+                              f"{service},"
+                              f"{loc_record.get('Latitude', '')},"
+                              f"{loc_record.get('Longitude', '')},"
+                              f"{loc_record.get('Company', '')},"
+                              f"{distance},"
+                              f"TRUE\n")
+                              
+                    matches.append({'distance': distance, 'record': record})
+            except ValueError:
+                continue
 
-        # return the single record
-        return data_to_write[0]
+    if matches:
+        closest_record = find_closest_point(matches, threshold_distance)
+        if closest_record:
+            return closest_record
 
-    else:
-        # write data w/o a match - single record
-        results.append(bdc_item.strip('\n') + ',' + ',' + ',' + ',' + ',' + ',' + ',' ',FALSE\n')
-        write_record(results, out_file)
-
-        # return the single record
-        return results[0]
+    # Default return if no match found
+    return f'{bdc_item.strip()},,,,,,,,FALSE\n'
 
 
-def post_process(home_dir, results_file):
-    
-    # Define Output File
+def post_process(home_dir: str, results_file: str) -> None:
     date_ref = datetime.today().strftime('%d-%b-%Y')
-    output_file = f'{home_dir}/bdc_tool/output/Deduped_FCC_Report_{date_ref}.csv'
+    output_dir = Path(home_dir) / 'bdc_tool' / 'output'
+    output_file = output_dir / f'Deduped_FCC_Report_{date_ref}.csv'
 
-    # Read Results file csv
-    df = pd.read_csv(results_file)
+    try:
+        # Read Results file csv
+        df = pd.read_csv(results_file)
 
-    # Will use FullAddress to find duplicates
-    # Will use Distance to locate the closest location match to keep
+        if df.empty:
+            print_with_header("No results to post-process.")
+            return
 
-    # Group by FullAddress and find the minimum distance
-    idx = df.groupby(['FullAddress'])['Distance'].idxmin()
+        # Group by FullAddress and find the minimum distance
+        # We need to make sure 'Distance' is numeric
+        if 'Distance' in df.columns:
+            # Handle cases where Distance might be empty/non-numeric due to FALSE matches
+            df['Distance'] = pd.to_numeric(df['Distance'], errors='coerce')
+            
+            # Filter solely for matches where Distance is present to find best match? 
+            # Or just dedupe everything. The original logic was:
+            idx = df.groupby(['FullAddress'])['Distance'].idxmin()
+            df_min = df.loc[idx]
+        else:
+             df_min = df
 
-    # Create a new dataframe with the minimum distance
-    df_min = df.loc[idx]
+        # Write the results to a new file
+        df_min.to_csv(output_file, sep=',', encoding='utf-8', index=False)
 
-    # Write the results to a new file
-    df_min.to_csv(f'{output_file}', sep=',', encoding='utf-8', index=False)
+        print_with_header(f'Output File: {output_file}\nNumber of unique records with a match: {len(df_min)}')
 
-    # Print number of unique records with a match
+        if 'Service' in df_min.columns and 'Company' in df_min.columns:
+            df_pivot = df_min.pivot_table(index=['Service'], columns=['Company'], aggfunc='size', fill_value=0)
+            print_with_header(f'Pivot Table of the data by Service Type and Company:\n\n{df_pivot}\n')
+            
+    except Exception as e:
+        logger.error(f"Error in post-processing: {e}")
 
-    print_with_header(f'Output File: {output_file}\nNumber of unique records with a match: {len(df_min)}')
-    
-    # Print the number of service = Fiber
-
-    # df_fiber = df_min[df_min['Service'] == 'Fiber']
-
-    # print_with_header(f'Number of unique records with a match and service = Fiber: {len(df_fiber)}')
-
-    # Print a pivot table of the data by service and company
-
-    df_pivot = df_min.pivot_table(index=['Service'], columns=['Company'], aggfunc='size', fill_value=0)
-
-    print_with_header(f'Pivot Table of the data by Service Type and Company:\n\n{df_pivot}\n')
-
-
-# End of ChatGPT3 section (modified)
 
 def main():
-
     # Get User's Home Directory
-
     home_dir = os.getenv('HOME')
+    if not home_dir:
+        home_dir = str(Path.home())
+        
     date_ref = datetime.today().strftime('%d-%b-%Y')
 
-    # Get CPU Count for Processing
     cpus = multiprocessing.cpu_count()
     print_with_header(f'Welcome to the BDC Fabric Comparison Tool.  Your system has: {cpus} CPUs for processing.')
 
+    # Default file paths
+    bdc_csv_file = ''
+    sm_csv_file = ''
+    out_csv_file = ''
+    search_area = '5000'
+
     if args.test is True:
-
-        # (TESTING SECTION)
-
         print('TESTING MODE is ACTIVE!  Data is simulated!')
-
-        # Simulated Inputs for TESTING PURPOSES
         bdc_csv_file = './SampleData/FCC_Active_BSL.csv'
         sm_csv_file = './SampleData/All_SM.csv'
-        out_csv_file = f'{home_dir}/bdc_tool/Data/output/Test_FCC_Report_{date_ref}.csv'
-        results_csv_file = f'{home_dir}/bdc_tool/Data/output/Test_FCC_Report_Results_{date_ref}.csv'
-        search_area = '5000'
-
-        if args.verbose is True:
-            verbose_print(f'User\'s Home Directory: {home_dir}')
-            verbose_print(f'BDC File: {bdc_csv_file}')
-            verbose_print(f'ServicesManager File: {sm_csv_file}')
-            verbose_print(f'Output File: {out_csv_file}')
-            verbose_print(f'Results File: {results_csv_file}')
-            verbose_print(f'Threshold Distance: {search_area}')
+        out_csv_file = str(Path(home_dir) / 'bdc_tool' / 'Data' / 'output' / f'Test_FCC_Report_{date_ref}.csv')
+        results_csv_file = str(Path(home_dir) / 'bdc_tool' / 'Data' / 'output' / f'Test_FCC_Report_Results_{date_ref}.csv')
+        
+        if args.verbose:
+            logger.debug(f'User\'s Home Directory: {home_dir}')
 
     else:
-
         if args.cli is True:
-
-    
-            # Get user inputs - Data validate
             while True:
                 bdc_csv_file = input('Please enter path and filename of BDC_Active_BSL CSV file: ')
                 if FHC.MiscTools.file_check(bdc_csv_file) is True:
@@ -302,114 +279,109 @@ def main():
                 if FHC.MiscTools.path_check(out_csv_file) is True:
                     break
             while True:
-                search_area = input('What is your search radius in feet? ')
+                val = input('What is your search radius in feet? ')
                 try:
-                    if float(search_area) > 0:
+                    if float(val) > 0:
+                        search_area = val
                         break
-                except:
+                except ValueError:
                     pass    
-
         else:
-
-            # Launch GUI (NORMAL OPERATION)
+            # Launch GUI
             gui = BGC.BDCGUI()
-
-            # Assign GUI inputs by instance attributes
             bdc_csv_file = gui.fcc_file
             sm_csv_file = gui.sm_file
             out_csv_file = gui.outfile
             search_area = gui.distance
 
-    # Set FHC instances
+    # Prepare output paths
+    output_dir_path = Path(home_dir) / 'bdc_tool' / 'output'
+    output_dir_path.mkdir(parents=True, exist_ok=True)
+    results_csv_file = str(output_dir_path / f'FCC_Report_Results_{date_ref}.csv')
+
+    # Initialize File Handlers
     bdc_file = FHC.FileHandler(bdc_csv_file)
     sm_file = FHC.FileHandler(sm_csv_file)
-    out_file = FHC.FileHandler(out_csv_file)
-    results_csv_file = f'{home_dir}/bdc_tool/output/FCC_Report_Results_{date_ref}.csv'
     results_file = FHC.FileHandler(results_csv_file)
 
-    # Get Data
+    # Read Data
     bdc_header = bdc_file.get_csv_header()
     bdc_data = bdc_file.read_file()
     sm_header = sm_file.get_csv_header()
     sm_data = sm_file.read_file()
 
-    # Set Output Header Data
-    services_manager_headers = ',"M4_Structure_ID","FullAddress","Service","SM_LAT","SM_LON","Company","Distance","Match_Flag"\n'
-    out_file_header = bdc_data[0].strip('\n') + services_manager_headers
-    out_file.write_file(out_file_header)
-    results_file.write_file(out_file_header)
-
-    # Read Data Files and drop the fist line (it contains headers)
-
+    # Drop headers from data
     bdc_items = bdc_data[1:]
     sm_items = sm_data[1:]
 
-    if args.verbose is True:
-        print(f'BDC data sample (first record): {bdc_items[0]}')
-        print(f'SM data sample (first record): {sm_items[0]}')
+    # Write Headers
+    services_manager_headers = ',"M4_Structure_ID","FullAddress","Service","SM_LAT","SM_LON","Company","Distance","Match_Flag"\n'
+    out_file_header = bdc_data[0].strip('\n') + services_manager_headers
+    results_file.write_file(out_file_header)
 
-    # Data package definition
+    if args.verbose:
+        logger.debug(f'BDC data sample (first record): {bdc_items[0] if bdc_items else "Empty"}')
+        logger.debug(f'SM data sample (first record): {sm_items[0] if sm_items else "Empty"}')
 
+    # Data package for workers
+    # NOTE: NOT passing file handlers to workers prevents pickling errors and race conditions
     data = {
-        'bdc_items' : bdc_items,
-        'sm_items' : sm_items,
-        'bdc_header' : bdc_header,
-        'sm_header' : sm_header,
-        'search_area' : search_area,
-        'output_file' : out_file
+        'bdc_header': bdc_header,
+        'sm_header': sm_header,
+        'sm_items': sm_items,
+        'search_area': search_area,
     }
 
-    # Run Iterator - Multiple instances
-   
-    # Start a timer to get a total run time
-    # start_time = Timer()
     start_time = datetime.now()
-
-    # Print Search Area
-
     print_with_header(f'\nSearch Area: {search_area} feet\n')
 
-    if args.test is True:
-        # (TESTING SECTION)
-        # Single Processor - Testing (uncomment code)
-        for bdc_item in tqdm(bdc_items):
-            find_close_points(data, bdc_item)
-
-    else:
-        # (PARALLEL PROCESSING SECTION)
-        # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function. Use FCC Active BSL data.
+    # Processing Loop
+    try:
+        if args.test is True:
+            # Single Process for Test
+            results = []
+            for bdc_item in tqdm(bdc_items):
+                result = find_close_points(data, bdc_item)
+                results.append(result)
+            
+            # Write all results
+            write_record(results, results_file)
         
-        with Pool() as pool:
-            processes = [pool.apply_async(find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items]
-            results = [process.get() for process in tqdm(processes)]
+        else:
+            # Parallel Processing
+            # Use imap_unordered for better memory efficiency and streaming results
+            with Pool() as pool:
+                # Create a generator of results
+                # Use partial to bind the data argument, making it picklable (unlike lambda)
+                process_func = partial(find_close_points, data)
+                result_iterator = pool.imap_unordered(
+                    process_func,
+                    bdc_items,
+                    chunksize=10 # Tune chunksize for performance
+                )
+                
+                # Write results as they come in to avoid holding everything in memory
+                # Note: FHC write_append_to_file writes a single line/item
+                for result in tqdm(result_iterator, total=len(bdc_items)):
+                     results_file.write_append_to_file(result)
 
-        # OLD Parallel Processing Code (pre finding the Pool() class) - kept for reference
-        # # Set progress bar "tqdm" on list of Processes pointing to the find_close_points function.  Use FCC Active BSL data.
+    except KeyboardInterrupt:
+        print("\nProcessing interrupted by user.")
+        return
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return
 
-        # processes = tqdm([Process(target=find_close_points, args=(data, bdc_item)) for bdc_item in bdc_items])
-    
-        # # Start Processes
-        # for process in processes:
-        #     process.start()
-        # for process in processes:
-        #     process.join()
-    
-
-    # Write results of the find_close_points function to the results file
-    # This is an alternative Write Method - write once instead of multiple times as directed by the find_close_points function
-    write_record(results, results_file)
+    # Post Processing
     post_process(home_dir, results_csv_file)
 
-
-    # End timer
-    # stop_time = Timer()
     stop_time = datetime.now()
+    total_time = (stop_time - start_time).total_seconds() / 60
 
-    total_time = (stop_time - start_time)/60
-
-    # Print out total process time
-    print_with_header(f'Complete! Overall Time: {total_time}.')
+    print_with_header(f'Complete! Overall Time: {total_time:.2f} minutes.')
 
 
 if __name__ == '__main__':
+    # Added freeze_support for Windows compatibility, though user is on Mac it's good practice
+    multiprocessing.freeze_support()
     main()
