@@ -214,6 +214,8 @@ def post_process(home_dir: str, results_file: str) -> None:
     try:
         # Read Results file csv
         df = pd.read_csv(results_file.filename, low_memory=False)
+        # Strip literal quotes and leading/trailing whitespace from column names to prevent KeyErrors
+        df.columns = df.columns.str.strip(' "')
 
         if df.empty:
             print_with_header("No results to post-process.")
@@ -228,7 +230,8 @@ def post_process(home_dir: str, results_file: str) -> None:
             # Filter solely for matches where Distance is present to find best match? 
             # Group by HUBB_ID to get the closest BDC record for each target location
             # print(df.columns)
-            idx = df.groupby(['"HUBB Location ID"'])['Distance'].idxmin()
+
+            idx = df.groupby(['HUBB Location ID'])['Distance'].idxmin()
             df_min = df.loc[idx]
         else:
              df_min = df
@@ -238,8 +241,8 @@ def post_process(home_dir: str, results_file: str) -> None:
 
         print_with_header(f'Output File: {output_file}\nNumber of unique records with a match: {len(df_min)}')
 
-        if 'Fund' in df_min.columns and 'CarrierLoc' in df_min.columns:
-            df_pivot = df_min.pivot_table(index=['Fund'], columns=['CarrierLoc'], aggfunc='size', fill_value=0)
+        if 'Fund name' in df_min.columns and 'Carrier Location ID' in df_min.columns:
+            df_pivot = df_min.pivot_table(index=['Fund name'], columns=['Carrier Location ID'], aggfunc='size', fill_value=0)
             print_with_header(f'Pivot Table of the data by Fund and Carrier:\n\n{df_pivot}\n')
             
     except Exception as e:
@@ -315,9 +318,9 @@ def main():
 
     # Test
     # Post Processing
-    print(results_file.filename)
-    post_process(home_dir, results_file)
-    exit()
+    # print(results_file.filename)
+    # post_process(home_dir, results_file)
+    # exit()
 
     # Read Data
     bdc_header = bdc_file.get_csv_header()
