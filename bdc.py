@@ -8,9 +8,8 @@ and VertiGIS M4 compiled Services Manager report.
 FCC_Active_BSL.csv headers:
 "location_id","address_primary","city","state","zip","zip_suffix","unit_count","bsl_flag","building_type_code","land_use_code","address_confidence_code","county_geoid","block_geoid","h3_9","latitude","longitude"
 
-M4 Services Manager headers:
-FullAddress,SID,PID,EXID,Service,Latitude,Longitude,Company,_overlaps
-
+Target Data headers (e.g. HUBB):
+'Fund name', 'SAC*', 'Latitude*', 'Longitude*', 'Date of Deployment*', 'Download/Upload Speed Tier*', 'Address*', 'City*', 'State*', 'Zip Code*', '# of Units*', 'Carrier Location ID', 'Technology', 'Other Technology', 'Latency', 'HUBB Location ID'
 Program Created by Ben Calvert (and ChatGPT3)
 Date: 2/4/2023
 Refactored: 12/15/2025
@@ -131,8 +130,8 @@ def find_close_points(data: Dict[str, Any], bdc_item: str) -> str:
     '''
     # Unpack data dictionary
     bdc_header = data['bdc_header']
-    sm_header = data['sm_header']
-    locations = data['sm_items']
+    hubb_header = data['hubb_header']
+    locations = data['hubb_items']
     threshold_distance = float(data['search_area'])
 
     # Create an addressible dictionary record using the bdc file header information
@@ -156,32 +155,40 @@ def find_close_points(data: Dict[str, Any], bdc_item: str) -> str:
     
     for location in locations:
         loc_array = parse_csv_line(location)
-        if len(loc_array) != len(sm_header):
+        if len(loc_array) != len(hubb_header):
             continue
             
-        loc_record = dict(zip(sm_header, loc_array))
+        loc_record = dict(zip(hubb_header, loc_array))
 
         # Test for NULL values
-        if (loc_record.get('Latitude', '').upper() != 'NULL' and 
-            loc_record.get('Longitude', '').upper() != 'NULL'):
+        if (loc_record.get('Latitude*', '').upper() != 'NULL' and 
+            loc_record.get('Longitude*', '').upper() != 'NULL'):
             
             try:
-                lat2 = float(loc_record['Latitude'])
-                lon2 = float(loc_record['Longitude'])
+                lat2 = float(loc_record['Latitude*'])
+                lon2 = float(loc_record['Longitude*'])
                 
                 distance = haversine(lat1, lon1, lat2, lon2)
                 
                 if distance <= threshold_distance:
-                    service = loc_record.get('Service', '').split('_')[0]
-                    
-                    # Create the result string
+                    # Create the result string matching the new output headers
                     record = (f"{bdc_item.strip()},"
-                              f"{loc_record.get('SID', '')},"
-                              f"{loc_record.get('FullAddress', '')},"
-                              f"{service},"
-                              f"{loc_record.get('Latitude', '')},"
-                              f"{loc_record.get('Longitude', '')},"
-                              f"{loc_record.get('Company', '')},"
+                              f"{loc_record.get('Fund name', '')},"
+                              f"{loc_record.get('SAC*', '')},"
+                              f"{loc_record.get('Latitude*', '')},"
+                              f"{loc_record.get('Longitude*', '')},"
+                              f"{loc_record.get('Date of Deployment*', '')},"
+                              f"{loc_record.get('Download/Upload Speed Tier*', '')},"
+                              f"{loc_record.get('Address*', '')},"
+                              f"{loc_record.get('City*', '')},"
+                              f"{loc_record.get('State*', '')},"
+                              f"{loc_record.get('Zip Code*', '')},"
+                              f"{loc_record.get('# of Units*', '')},"
+                              f"{loc_record.get('Carrier Location ID', '')},"
+                              f"{loc_record.get('Technology', '')},"
+                              f"{loc_record.get('Other Technology', '')},"
+                              f"{loc_record.get('Latency', '')},"
+                              f"{loc_record.get('HUBB Location ID', '')},"
                               f"{distance},"
                               f"TRUE\n")
                               
@@ -195,17 +202,18 @@ def find_close_points(data: Dict[str, Any], bdc_item: str) -> str:
             return closest_record
 
     # Default return if no match found
-    return f'{bdc_item.strip()},,,,,,,,FALSE\n'
+    return f'{bdc_item.strip()},,,,,,,,,,,,,,,,,,FALSE\n'
 
 
 def post_process(home_dir: str, results_file: str) -> None:
-    date_ref = datetime.today().strftime('%d-%b-%Y')
-    output_dir = Path(home_dir) / 'bdc_tool' / 'output'
-    output_file = output_dir / f'Deduped_FCC_Report_{date_ref}.csv'
-
+    # date_ref = datetime.today().strftime('%d-%b-%Y')
+    # output_dir = Path(home_dir) / 'bdc_tool' / 'output'
+    output_file = f'{results_file.filename.replace(".csv", "")}_deduped.csv'
+    print(f'Output File: {output_file}')
+    
     try:
         # Read Results file csv
-        df = pd.read_csv(results_file)
+        df = pd.read_csv(results_file.filename, low_memory=False)
 
         if df.empty:
             print_with_header("No results to post-process.")
@@ -218,8 +226,9 @@ def post_process(home_dir: str, results_file: str) -> None:
             df['Distance'] = pd.to_numeric(df['Distance'], errors='coerce')
             
             # Filter solely for matches where Distance is present to find best match? 
-            # Or just dedupe everything. The original logic was:
-            idx = df.groupby(['FullAddress'])['Distance'].idxmin()
+            # Group by HUBB_ID to get the closest BDC record for each target location
+            # print(df.columns)
+            idx = df.groupby(['"HUBB Location ID"'])['Distance'].idxmin()
             df_min = df.loc[idx]
         else:
              df_min = df
@@ -229,9 +238,9 @@ def post_process(home_dir: str, results_file: str) -> None:
 
         print_with_header(f'Output File: {output_file}\nNumber of unique records with a match: {len(df_min)}')
 
-        if 'Service' in df_min.columns and 'Company' in df_min.columns:
-            df_pivot = df_min.pivot_table(index=['Service'], columns=['Company'], aggfunc='size', fill_value=0)
-            print_with_header(f'Pivot Table of the data by Service Type and Company:\n\n{df_pivot}\n')
+        if 'Fund' in df_min.columns and 'CarrierLoc' in df_min.columns:
+            df_pivot = df_min.pivot_table(index=['Fund'], columns=['CarrierLoc'], aggfunc='size', fill_value=0)
+            print_with_header(f'Pivot Table of the data by Fund and Carrier:\n\n{df_pivot}\n')
             
     except Exception as e:
         logger.error(f"Error in post-processing: {e}")
@@ -250,16 +259,16 @@ def main():
 
     # Default file paths
     bdc_csv_file = ''
-    sm_csv_file = ''
+    hubb_csv_file = ''
     out_csv_file = ''
-    search_area = '5000'
+    search_area = '500'
 
     if args.test is True:
         print('TESTING MODE is ACTIVE!  Data is simulated!')
         bdc_csv_file = './SampleData/FCC_Active_BSL.csv'
-        sm_csv_file = './SampleData/All_SM.csv'
+        hubb_csv_file = './SampleData/All_SM.csv'
         out_csv_file = str(Path(home_dir) / 'bdc_tool' / 'Data' / 'output' / f'Test_FCC_Report_{date_ref}.csv')
-        results_csv_file = str(Path(home_dir) / 'bdc_tool' / 'Data' / 'output' / f'Test_FCC_Report_Results_{date_ref}.csv')
+        results_file = str(Path(home_dir) / 'bdc_tool' / 'Data' / 'output' / f'Test_FCC_Report_Results_{date_ref}.csv')
         
         if args.verbose:
             logger.debug(f'User\'s Home Directory: {home_dir}')
@@ -271,8 +280,8 @@ def main():
                 if FHC.MiscTools.file_check(bdc_csv_file) is True:
                     break
             while True:
-                sm_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
-                if FHC.MiscTools.file_check(sm_csv_file) is True:
+                hubb_csv_file = input('Please enter path and filename of ServicesManager CSV: ')
+                if FHC.MiscTools.file_check(hubb_csv_file) is True:
                     break
             while True:
                 out_csv_file = input('Please enter path and filename of Output CSV file: ')
@@ -290,45 +299,52 @@ def main():
             # Launch GUI
             gui = BGC.BDCGUI()
             bdc_csv_file = gui.fcc_file
-            sm_csv_file = gui.sm_file
+            hubb_csv_file = gui.hubb_file
             out_csv_file = gui.outfile
             search_area = gui.distance
 
     # Prepare output paths
     output_dir_path = Path(home_dir) / 'bdc_tool' / 'output'
     output_dir_path.mkdir(parents=True, exist_ok=True)
-    results_csv_file = str(output_dir_path / f'FCC_Report_Results_{date_ref}.csv')
+    results_file = str(output_dir_path / f'{out_csv_file}')
 
     # Initialize File Handlers
     bdc_file = FHC.FileHandler(bdc_csv_file)
-    sm_file = FHC.FileHandler(sm_csv_file)
-    results_file = FHC.FileHandler(results_csv_file)
+    hubb_file = FHC.FileHandler(hubb_csv_file)
+    results_file = FHC.FileHandler(results_file)
+
+    # Test
+    # Post Processing
+    print(results_file.filename)
+    post_process(home_dir, results_file)
+    exit()
 
     # Read Data
     bdc_header = bdc_file.get_csv_header()
     bdc_data = bdc_file.read_file()
-    sm_header = sm_file.get_csv_header()
-    sm_data = sm_file.read_file()
+    hubb_header = hubb_file.get_csv_header()
+    hubb_data = hubb_file.read_file()
 
     # Drop headers from data
     bdc_items = bdc_data[1:]
-    sm_items = sm_data[1:]
+    hubb_items = hubb_data[1:]
 
     # Write Headers
-    services_manager_headers = ',"M4_Structure_ID","FullAddress","Service","SM_LAT","SM_LON","Company","Distance","Match_Flag"\n'
-    out_file_header = bdc_data[0].strip('\n') + services_manager_headers
+    hubb_report_headers = ',"Fund name", "SAC*", "Latitude*", "Longitude*", "Date of Deployment*", "Download/Upload Speed Tier*", "Address*", "City*", "State*", "Zip Code*", "# of Units*", "Carrier Location ID", "Technology", "Other Technology", "Latency", "HUBB Location ID","Distance","Match_Flag"\n'
+
+    out_file_header = bdc_data[0].strip('\n') + hubb_report_headers
     results_file.write_file(out_file_header)
 
     if args.verbose:
         logger.debug(f'BDC data sample (first record): {bdc_items[0] if bdc_items else "Empty"}')
-        logger.debug(f'SM data sample (first record): {sm_items[0] if sm_items else "Empty"}')
+        logger.debug(f'SM data sample (first record): {hubb_items[0] if hubb_items else "Empty"}')
 
     # Data package for workers
     # NOTE: NOT passing file handlers to workers prevents pickling errors and race conditions
     data = {
         'bdc_header': bdc_header,
-        'sm_header': sm_header,
-        'sm_items': sm_items,
+        'hubb_header': hubb_header,
+        'hubb_items': hubb_items,
         'search_area': search_area,
     }
 
@@ -373,7 +389,7 @@ def main():
         return
 
     # Post Processing
-    post_process(home_dir, results_csv_file)
+    post_process(home_dir, results_file)
 
     stop_time = datetime.now()
     total_time = (stop_time - start_time).total_seconds() / 60

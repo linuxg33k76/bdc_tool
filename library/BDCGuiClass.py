@@ -57,10 +57,10 @@ class BDCGUI():
         tk.Button(self.root, text="Browse FCC File", command=self.browse_fcc).grid(row=1, column=2)
 
         # Create Services Manager (SM) File Entry    
-        tk.Label(self.root, text="Select SM File:").grid(row=2, column=0, sticky='w')
-        self.sm_file_entry = tk.Entry(self.root, width=80)
-        self.sm_file_entry.grid(row=3, column=0, padx=5)
-        tk.Button(self.root, text="Browse SM File", command=self.browse_sm).grid(row=3, column=2)
+        tk.Label(self.root, text="Select HUBB File:").grid(row=2, column=0, sticky='w')
+        self.hubb_file_entry = tk.Entry(self.root, width=80)
+        self.hubb_file_entry.grid(row=3, column=0, padx=5)
+        tk.Button(self.root, text="Browse HUBB File", command=self.browse_sm).grid(row=3, column=2)
 
         # Create Output File Entry
         tk.Label(self.root, text="Enter Output File:", justify="left").grid(row=4, column=0, sticky='w')
@@ -109,10 +109,10 @@ class BDCGUI():
         returns: None
         '''
 
-        self.sm_file_entry.delete(0, tk.END)
+        self.hubb_file_entry.delete(0, tk.END)
 
         # Open the file dialog looking for *.csv files starting from the user's home directory and insert the path into the entry field
-        self.sm_file_entry.insert(0, filedialog.askopenfilename(title="Select Services Manager File", initialdir=self.home, filetypes=[("CSV files", "*.csv")]))
+        self.hubb_file_entry.insert(0, filedialog.askopenfilename(title="Select Services Manager File", initialdir=self.home, filetypes=[("CSV files", "*.csv")]))
 
     def process_data(self):
 
@@ -126,7 +126,7 @@ class BDCGUI():
 
         data_dict = {
             'fcc_file': self.fcc_file_entry.get(),
-            'sm_file': self.sm_file_entry.get(),
+            'hubb_file': self.hubb_file_entry.get(),
             'outfile': self.outfile_entry.get(),
             'distance': self.distance_entry.get()
         }
@@ -138,8 +138,8 @@ class BDCGUI():
             messagebox.showerror('Error', 'Please select an FCC file.')
             return
         
-        if data_dict['sm_file'] != '':
-            self.sm_file = data_dict['sm_file']
+        if data_dict['hubb_file'] != '':
+            self.hubb_file = data_dict['hubb_file']
         else:
             messagebox.showerror('Error', 'Please select an Services Manager file.')
             return
