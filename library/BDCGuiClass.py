@@ -159,7 +159,7 @@ class BDCGUI():
         # print(data_dict)
 
         # Display message that the data is processing
-        messagebox.showinfo('Processing', 'Data is being processed. Please wait...')
+        messagebox.showinfo('Processing', 'Data is being processed. Click "OK" to continue.')
 
         # Close the GUI
         self.root.destroy()

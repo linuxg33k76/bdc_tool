@@ -214,6 +214,7 @@ def post_process(home_dir: str, results_file: str) -> None:
     try:
         # Read Results file csv
         df = pd.read_csv(results_file.filename, low_memory=False)
+
         # Strip literal quotes and leading/trailing whitespace from column names to prevent KeyErrors
         df.columns = df.columns.str.strip(' "')
 
@@ -242,8 +243,10 @@ def post_process(home_dir: str, results_file: str) -> None:
         print_with_header(f'Output File: {output_file}\nNumber of unique records with a match: {len(df_min)}')
 
         if 'Fund name' in df_min.columns and 'Carrier Location ID' in df_min.columns:
-            df_pivot = df_min.pivot_table(index=['Fund name'], columns=['Carrier Location ID'], aggfunc='size', fill_value=0)
-            print_with_header(f'Pivot Table of the data by Fund and Carrier:\n\n{df_pivot}\n')
+            # df_pivot = df_min.pivot_table(index=['Fund name'], columns=['Carrier Location ID'], aggfunc='size', fill_value=0)
+            df_pivot_carrier = df_min.pivot_table(index=['Carrier Location ID'], columns=['Fund name'], aggfunc='size', fill_value=0)
+
+            print_with_header(f'Pivot Table of the data by Carrier and Fund:\n\n{df_pivot_carrier}\n')
             
     except Exception as e:
         logger.error(f"Error in post-processing: {e}")
