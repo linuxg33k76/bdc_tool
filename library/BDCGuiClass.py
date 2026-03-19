@@ -20,7 +20,7 @@ class BDCGUI():
         self.date_ref = datetime.today().strftime('%d-%b-%Y')
         self.home = os.getenv("HOME")
         self.outfile = self.home + f'/bdc_tool/output/bdc_tool_ouput_{self.date_ref}.csv'
-        self.distance = '300'
+        self.distance = '5280'
 
         self.create_gui()
        

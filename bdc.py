@@ -10,9 +10,10 @@ FCC_Active_BSL.csv headers:
 
 Target Data headers (e.g. HUBB):
 'Fund name', 'SAC*', 'Latitude*', 'Longitude*', 'Date of Deployment*', 'Download/Upload Speed Tier*', 'Address*', 'City*', 'State*', 'Zip Code*', '# of Units*', 'Carrier Location ID', 'Technology', 'Other Technology', 'Latency', 'HUBB Location ID'
-Program Created by Ben Calvert (and ChatGPT3)
+Program Created by Ben Calvert (and ChatGPT3 & Gemini 3.1 Pro)
 Date: 2/4/2023
 Refactored: 12/15/2025
+Updated: 3/19/2026
 
 Apache 2.0 License
 '''
@@ -172,6 +173,7 @@ def find_close_points(data: Dict[str, Any], bdc_item: str) -> str:
                 
                 if distance <= threshold_distance:
                     # Create the result string matching the new output headers
+
                     record = (f"{bdc_item.strip()},"
                               f"{loc_record.get('Fund name', '')},"
                               f"{loc_record.get('SAC*', '')},"
@@ -193,9 +195,11 @@ def find_close_points(data: Dict[str, Any], bdc_item: str) -> str:
                               f"TRUE\n")
                               
                     matches.append({'distance': distance, 'record': record})
+            
             except ValueError:
                 continue
-
+    
+    # Find the closest record to the BDC location
     if matches:
         closest_record = find_closest_point(matches, threshold_distance)
         if closest_record:
@@ -206,6 +210,9 @@ def find_close_points(data: Dict[str, Any], bdc_item: str) -> str:
 
 
 def post_process(home_dir: str, results_file: str) -> None:
+    '''
+    Post-process the results file to remove duplicate records.
+    '''
     # date_ref = datetime.today().strftime('%d-%b-%Y')
     # output_dir = Path(home_dir) / 'bdc_tool' / 'output'
     output_file = f'{results_file.filename.replace(".csv", "")}_deduped.csv'
@@ -242,17 +249,37 @@ def post_process(home_dir: str, results_file: str) -> None:
 
         print_with_header(f'Output File: {output_file}\nNumber of unique records with a match: {len(df_min)}')
 
-        if 'Fund name' in df_min.columns and 'Carrier Location ID' in df_min.columns:
-            # df_pivot = df_min.pivot_table(index=['Fund name'], columns=['Carrier Location ID'], aggfunc='size', fill_value=0)
-            df_pivot_carrier = df_min.pivot_table(index=['Carrier Location ID'], columns=['Fund name'], aggfunc='size', fill_value=0)
+        # Find the median distance
+        median_distance = df_min['Distance'].median()
+        print_with_header(f'Median Distance: {median_distance} (middle value)')
 
-            print_with_header(f'Pivot Table of the data by Carrier and Fund:\n\n{df_pivot_carrier}\n')
-            
+        # Find the mean distance
+        mean_distance = df_min['Distance'].mean()
+        print_with_header(f'Mean Distance: {mean_distance} (average distance)')
+
+        # Find the mode distance
+        mode_distance = df_min['Distance'].mode()
+        print_with_header(f'Mode Distance: {mode_distance} (most common distance)')
+
+        # Pivot table of the data by HUBB Location ID and Download/Upload Speed Tier*
+        # if 'Download/Upload Speed Tier*' in df_min.columns and 'HUBB Location ID' in df_min.columns:
+     
+            # df_pivot_carrier = df_min.pivot_table(index=['Download/Upload Speed Tier*'], columns=['HUBB Location ID'], aggfunc='size', fill_value=0)
+
+            # print_with_header(f'Pivot Table of the data by HUBB Location ID and Download/Upload Speed Tier*:\n\n{df_pivot_carrier}\n')
+
+        # Summary of counts of each Download/Upload Speed Tier*
+        df_counts = df_min['Download/Upload Speed Tier*'].value_counts().sort_index()
+        print_with_header(f'Summary of counts of each Download/Upload Speed Tier*:\n\n{df_counts}\n')
+
     except Exception as e:
         logger.error(f"Error in post-processing: {e}")
 
 
 def main():
+    '''
+    Main function to run the BDC Tool.
+    '''
     # Get User's Home Directory
     home_dir = os.getenv('HOME')
     if not home_dir:
